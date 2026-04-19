@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IMUpilot — India's First Complete IMUCET Preparation Platform</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;color:#1a2540;}
+nav{background:#fff;border-bottom:1px solid #e2e8f0;padding:0 5%;display:flex;align-items:center;justify-content:space-between;height:64px;position:sticky;top:0;z-index:100;}
+.nav-logo{font-size:20px;font-weight:800;color:#1B3A6B;letter-spacing:1px;font-family:'Segoe UI',Arial,sans-serif;}
+.nav-links{display:flex;gap:2rem;list-style:none;}
+.nav-links a{text-decoration:none;color:#4a5568;font-size:14px;font-weight:500;}
+.nav-links a.active{color:#1B3A6B;border-bottom:2px solid #2563eb;padding-bottom:2px;}
+.nav-btn{background:#1B3A6B;color:#fff;padding:9px 22px;border-radius:8px;font-size:14px;font-weight:600;text-decoration:none;}
+.hero{background:linear-gradient(135deg,#f8faff 0%,#e8f0fe 100%);padding:80px 5% 60px;display:flex;align-items:center;justify-content:space-between;gap:3rem;min-height:520px;}
+.hero-left{flex:1;max-width:560px;}
+.hero-badge{display:inline-block;background:#dbeafe;color:#1d4ed8;font-size:11px;font-weight:700;padding:5px 14px;border-radius:20px;letter-spacing:1.5px;margin-bottom:1.5rem;}
+.hero-title{font-size:52px;font-weight:800;line-height:1.1;color:#1a2540;margin-bottom:1.2rem;}
+.hero-title .highlight{color:#2563eb;}
+.hero-sub{font-size:16px;color:#4a5568;line-height:1.7;margin-bottom:2rem;max-width:480px;}
+.hero-right{flex:1;max-width:500px;position:relative;}
+.ship-visual{background:linear-gradient(145deg,#1B3A6B 0%,#2563eb 40%,#1e3a8a 70%,#0f172a 100%);border-radius:20px;height:340px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.ocean-waves{position:absolute;bottom:0;left:0;right:0;height:120px;background:linear-gradient(180deg,transparent 0%,rgba(14,165,233,0.3) 50%,rgba(14,165,233,0.6) 100%);}
+.ship-icon{font-size:80px;z-index:2;position:relative;}
+.horizon-line{position:absolute;top:50%;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.3),transparent);}
+.sun-glow{position:absolute;top:20%;left:50%;transform:translateX(-50%);width:80px;height:80px;background:radial-gradient(circle,rgba(251,191,36,0.6) 0%,rgba(251,191,36,0.1) 60%,transparent 100%);border-radius:50%;}
+.star{position:absolute;width:2px;height:2px;background:rgba(255,255,255,0.7);border-radius:50%;}
+.rank-card{position:absolute;bottom:-16px;right:-16px;background:#fff;border-radius:14px;padding:14px 20px;display:flex;align-items:center;gap:12px;box-shadow:0 8px 32px rgba(0,0,0,0.12);border:1px solid #e2e8f0;}
+.rank-icon{width:40px;height:40px;background:#dbeafe;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;}
+.rank-text strong{display:block;font-size:15px;font-weight:700;color:#1a2540;}
+.rank-text span{font-size:10px;color:#64748b;letter-spacing:1px;font-weight:600;}
+.launch-badge{position:absolute;top:-12px;left:20px;background:#E8630A;color:#fff;font-size:11px;font-weight:700;padding:4px 14px;border-radius:20px;letter-spacing:1px;}
+.cta-row{display:flex;align-items:center;gap:1rem;flex-wrap:wrap;}
+.cta-primary{background:#1B3A6B;color:#fff;padding:14px 28px;border-radius:10px;font-size:15px;font-weight:700;text-decoration:none;display:inline-block;}
+.cta-primary:hover{background:#2563eb;}
+.cta-secondary{color:#2563eb;font-size:14px;font-weight:600;text-decoration:none;}
+.stats-row{display:flex;gap:2.5rem;margin-top:2.5rem;padding-top:2rem;border-top:1px solid #e2e8f0;}
+.stat-num{font-size:26px;font-weight:800;color:#1B3A6B;}
+.stat-label{font-size:11px;color:#64748b;letter-spacing:0.5px;margin-top:2px;font-weight:500;}
+.features{background:#fff;padding:60px 5%;}
+.section-label{text-align:center;font-size:12px;font-weight:700;color:#2563eb;letter-spacing:2px;margin-bottom:0.8rem;}
+.section-title{text-align:center;font-size:32px;font-weight:800;color:#1a2540;margin-bottom:0.8rem;}
+.section-sub{text-align:center;font-size:15px;color:#64748b;margin-bottom:3rem;max-width:520px;margin-left:auto;margin-right:auto;}
+.feat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1.5rem;}
+.feat-card{background:#f8faff;border:1px solid #e2e8f0;border-radius:14px;padding:1.5rem;}
+.feat-card:hover{border-color:#2563eb;}
+.feat-icon{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:1rem;font-size:22px;}
+.feat-title{font-size:15px;font-weight:700;color:#1a2540;margin-bottom:0.4rem;}
+.feat-desc{font-size:13px;color:#64748b;line-height:1.6;}
+.waitlist{background:linear-gradient(135deg,#1B3A6B 0%,#1e3a8a 100%);padding:70px 5%;text-align:center;}
+.waitlist h2{font-size:34px;font-weight:800;color:#fff;margin-bottom:0.8rem;}
+.waitlist p{font-size:16px;color:rgba(255,255,255,0.7);margin-bottom:2rem;max-width:480px;margin-left:auto;margin-right:auto;}
+.waitlist-btn{display:inline-block;background:#E8630A;color:#fff;padding:16px 40px;border-radius:10px;font-size:16px;font-weight:700;text-decoration:none;margin-bottom:1rem;}
+.waitlist-btn:hover{background:#d4580a;}
+.waitlist-note{font-size:13px;color:rgba(255,255,255,0.5);}
+footer{background:#1a2540;padding:2rem 5%;text-align:center;font-size:13px;color:rgba(255,255,255,0.4);}
+@media(max-width:768px){
+  .hero{flex-direction:column;padding:50px 5% 40px;}
+  .hero-title{font-size:36px;}
+  .hero-right{width:100%;}
+  .nav-links{display:none;}
+  .stats-row{gap:1.5rem;}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">IMUPILOT</div>
+  <ul class="nav-links">
+    <li><a href="#" class="active">Home</a></li>
+    <li><a href="#features">Features</a></li>
+    <li><a href="#waitlist">Pricing</a></li>
+    <li><a href="#waitlist">Join Waitlist</a></li>
+  </ul>
+  <a href="https://forms.gle/zEMhaz2UooCKE9yX7" target="_blank" class="nav-btn">Get Early Access</a>
+</nav>
+
+<section class="hero">
+  <div class="hero-left">
+    <div class="hero-badge">INDIA'S FIRST COMPLETE PREP</div>
+    <h1 class="hero-title">
+      India's First<br>Complete<br>
+      <span class="highlight">IMUCET</span><br>
+      Preparation<br>Platform
+    </h1>
+    <p class="hero-sub">Learn &bull; Test &bull; Revise &bull; Excel. Master the deck with our curated modules designed for the modern mariner.</p>
+    <div class="cta-row">
+      <a href="https://forms.gle/zEMhaz2UooCKE9yX7" target="_blank" class="cta-primary">Join Early Access &rarr;</a>
+      <a href="#features" class="cta-secondary">See what's coming</a>
+    </div>
+    <div class="stats-row">
+      <div><div class="stat-num">100+</div><div class="stat-label">MOCK TESTS</div></div>
+      <div><div class="stat-num">3 Yrs</div><div class="stat-label">PAST PAPERS</div></div>
+      <div><div class="stat-num">1,000+</div><div class="stat-label">QUESTIONS</div></div>
+      <div><div class="stat-num">Nov '26</div><div class="stat-label">LAUNCH DATE</div></div>
+    </div>
+  </div>
+  <div class="hero-right">
+    <div class="ship-visual">
+      <div class="sun-glow"></div>
+      <div class="horizon-line"></div>
+      <div class="star" style="top:15%;left:20%"></div>
+      <div class="star" style="top:25%;left:70%"></div>
+      <div class="star" style="top:10%;left:50%"></div>
+      <div class="star" style="top:30%;left:35%"></div>
+      <div class="ocean-waves"></div>
+      <div class="ship-icon">&#128674;</div>
+    </div>
+    <div class="rank-card">
+      <div class="rank-icon">&#9889;</div>
+      <div class="rank-text">
+        <strong>Launching Nov 2026</strong>
+        <span>BE AMONG THE FIRST</span>
+      </div>
+    </div>
+    <div class="launch-badge">COMING SOON</div>
+  </div>
+</section>
+
+<section class="features" id="features">
+  <div class="section-label">WHAT'S COMING</div>
+  <h2 class="section-title">Everything you need to crack IMUCET</h2>
+  <p class="section-sub">One platform. All subjects. Real exam experience.</p>
+  <div class="feat-grid">
+    <div class="feat-card"><div class="feat-icon" style="background:#dbeafe;">&#128203;</div><div class="feat-title">Real Exam Interface</div><div class="feat-desc">Practice on a mirror image of the actual IMUCET interface. No surprises on exam day.</div></div>
+    <div class="feat-card"><div class="feat-icon" style="background:#dcfce7;">&#128196;</div><div class="feat-title">Past Papers 2023-25</div><div class="feat-desc">3 years of official papers with step-by-step solutions and NCERT chapter references.</div></div>
+    <div class="feat-card"><div class="feat-icon" style="background:#fef9c3;">&#128202;</div><div class="feat-title">Smart Analytics</div><div class="feat-desc">Know exactly which chapters need attention. Chapter weakness map, difficulty breakdown, time tracking.</div></div>
+    <div class="feat-card"><div class="feat-icon" style="background:#fce7f3;">&#128292;</div><div class="feat-title">English Module</div><div class="feat-desc">1,000+ vocabulary words, 1,300+ idioms, reading comprehension and grammar practice.</div></div>
+    <div class="feat-card"><div class="feat-icon" style="background:#ede9fe;">&#127183;</div><div class="feat-title">NCERT Flashcards</div><div class="feat-desc">Quick-revision flashcards for Physics, Chemistry and Maths — all high-yield IMUCET topics.</div></div>
+    <div class="feat-card"><div class="feat-icon" style="background:#ffedd5;">&#127919;</div><div class="feat-title">100+ Mock Tests</div><div class="feat-desc">Full-length timed mock tests aligned with the latest IMUCET pattern. Detailed solutions after each test.</div></div>
+  </div>
+</section>
+
+<section class="waitlist" id="waitlist">
+  <h2>Be the first to know when we launch</h2>
+  <p>Join aspirants already on the early access list. Get notified first and get a launch discount.</p>
+  <a href="https://forms.gle/zEMhaz2UooCKE9yX7" target="_blank" class="waitlist-btn">Join Early Access List &rarr;</a>
+  <div class="waitlist-note">Free to join &nbsp;&bull;&nbsp; No spam &nbsp;&bull;&nbsp; One email when we launch</div>
+</section>
+
+<footer>
+  &copy; 2026 IMUpilot &nbsp;|&nbsp; imupilot.in &nbsp;|&nbsp; India's First Complete IMUCET Preparation Platform
+</footer>
+
+</body>
+</html>
