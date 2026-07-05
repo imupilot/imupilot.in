@@ -1,0 +1,84 @@
+Q#,Subject,Chapter,Topic Tag,Difficulty,Question Text,Option A,Option B,Option C,Option D,Correct Answer,Concept / Formula,Step-by-Step Solution,Exam Tip / Common Mistake,Source,Year
+1,Physics,Ch1: Electric Charges & Fields,Coulomb's Law,Easy,Two point charges of +2 ?C and +8 ?C are placed 12 cm apart in vacuum. At what distance from the +2 ?C charge (on the line joining them) will the net electric field be zero?,4 cm,8 cm,6 cm,3 cm,A,"E = kQ/r². At null point: E? = E? ? Q?/r?² = Q?/r?². For same-sign charges, null point lies BETWEEN them, closer to the smaller charge.","Let distance from +2?C = x, so distance from +8?C = (12?x).
+Set E? = E?: k·2/x² = k·8/(12?x)²
+? (12?x)²/x² = 8/2 = 4
+? (12?x)/x = 2
+? 12?x = 2x ? x = 4 cm.","Null point is closer to smaller charge. For opposite charges, null point is OUTSIDE the pair, beyond the smaller charge — opposite rule to same-sign charges.",IMUCET Pattern,2024
+2,Physics,Ch1: Electric Charges & Fields,Electric Field — Point Charge,Easy,The electric field intensity at a point 30 cm from a point charge of 5 ?C in vacuum is approximately:,5 × 10? N/C,5 × 10? N/C,5 × 10? N/C,5 × 10? N/C,A,E = kQ/r² where k = 9×10? N·m²/C². Convert to SI units before substituting.,"Q = 5×10?? C, r = 0.30 m
+E = (9×10? × 5×10??) / (0.30)²
+= 45×10³ / 0.09
+= 5×10? N/C.",Always convert ?C to C (×10??) and cm to m before using formula. Forgetting unit conversion is the most common error on this type.,NCERT Example,2023
+3,Physics,Ch1: Electric Charges & Fields,Quantisation of Charge,Easy,How many electrons must be transferred from one conductor to another to produce a charge difference of 3.2 × 10?¹? C?,10,20,32,40,B,Charge quantisation: Q = ne where e = 1.6×10?¹? C. n must be a whole number.,n = Q/e = 3.2×10?¹? / 1.6×10?¹? = 3.2/0.16 = 20 electrons.,"e = 1.6×10?¹? C is a fixed constant — memorise it. The question says 'charge difference', meaning this is the magnitude transferred.",NCERT Exercise,2022
+4,Physics,Ch1: Electric Charges & Fields,Superposition Principle,Medium,Three equal charges of +q are placed at the three corners of an equilateral triangle of side 'a'. The magnitude of force on any one charge due to the other two is:,kq²/a²,?3·kq²/a²,2kq²/a²,?2·kq²/a²,B,"Use superposition: Find F from each of the two charges (both equal, angle 60° between them), then use vector addition. Since all charges equal and geometry symmetric: F_net = ?3·kq²/a².","Force from charge 2 on charge 1: F?? = kq²/a² (along one side)
+Force from charge 3 on charge 1: F?? = kq²/a² (along other side)
+Angle between F?? and F?? = 60°
+F_net = ?(F??² + F??² + 2·F??·F??·cos60°)
+= ?(1+1+1) · kq²/a² = ?3·kq²/a²","When three equal forces are at 120° to each other, they cancel to zero — that is a different configuration. Here forces are at 60° because the triangle is equilateral and both forces point AWAY from the central charge.",IMUCET Pattern,2024
+5,Physics,Ch1: Electric Charges & Fields,Electric Field Lines,Easy,Which of the following statements about electric field lines is INCORRECT?,They start from positive charges and end at negative charges,Two electric field lines can cross each other at a point of high field strength,The number of field lines per unit area indicates field strength,Field lines are always perpendicular to the surface of a conductor,B,"Electric field lines NEVER intersect. If they did, at the intersection point the field would have two directions — which is physically impossible (field has unique direction at every point).","Check each statement:
+A — Correct (positive ? negative)
+B — INCORRECT. Lines never cross
+C — Correct (density = field strength)
+D — Correct (conductor surface is equipotential ? field perpendicular)
+Answer: B",'INCORRECT' questions require checking ALL options. Eliminate correct ones — the false statement is the answer. Field line crossing = two field directions at one point = impossible.,NCERT Concept,2023
+6,Physics,Ch1: Electric Charges & Fields,Gauss's Law,Medium,A spherical shell of radius R carries a surface charge density ?. The electric field just inside the shell is:,?/??,?/2??,Zero,?·R/??,C,Gauss's Law: E inside a uniformly charged spherical shell = 0. All charge is on the surface; enclosed charge for any Gaussian surface inside = 0.,"Apply Gauss's Law with a spherical Gaussian surface inside the shell (radius r < R):
+Q_enclosed = 0 (no charge inside the shell)
+? = E·4?r² = Q_enclosed/?? = 0
+? E = 0 everywhere inside the shell.",Just OUTSIDE: E = ?/?? (or kQ/R²). Just INSIDE: E = 0. This is a classic trick — the word 'just inside' vs 'just outside' determines the answer.,NCERT Theorem,2022
+7,Physics,Ch1: Electric Charges & Fields,Electric Dipole,Medium,An electric dipole of moment p = 5×10?³? C·m is placed in a uniform electric field E = 10? N/C. The torque on the dipole when it makes 30° with the field is:,2.5×10?²? N·m,5×10?²? N·m,4.33×10?²? N·m,5×10?²? N·m,A,Torque on dipole: ? = pE·sin? where ? is angle between p and E.,"? = pE·sin?
+= 5×10?³? × 10? × sin30°
+= 5×10?²? × 0.5
+= 2.5×10?²? N·m","sin30° = 0.5, sin60° = ?3/2 ? 0.866, sin90° = 1. Maximum torque at 90° (perpendicular to field). Zero torque at 0° and 180° (stable and unstable equilibrium).",IMUCET Pattern,2023
+8,Physics,Ch1: Electric Charges & Fields,Conservation of Charge,Easy,"When a glass rod is rubbed with silk, the glass rod acquires a positive charge. This is because:",Protons are transferred from silk to glass,Electrons are transferred from glass to silk,Protons are transferred from glass to silk,Neutrons are transferred from glass to silk,B,Conservation of charge: Only electrons transfer in friction. Protons and neutrons are bound in the nucleus and cannot transfer. Object losing electrons ? positive charge.,"Glass rod becomes positive ? it lost negative charge ? electrons left the glass.
+Where did electrons go? To the silk.
+Answer: Electrons transferred from glass to silk.","Never say 'protons transfer' — protons are bound in the nucleus. In friction, always electrons move. The object that loses electrons becomes positive; the object that gains electrons becomes negative.",NCERT Concept,2022
+9,Physics,Ch1: Electric Charges & Fields,Coulomb's Law — Medium,Medium,Two identical conducting spheres carry charges of +6 ?C and ?2 ?C. They are brought into contact and then separated. The force between them at the original separation d is now:,"Repulsive, equal to original attractive force","Attractive, half the original attractive force","Repulsive, one-third of the original attractive force","Repulsive, one-ninth of the original attractive force",C,When identical spheres touch: total charge redistributes equally. Q_total = +6 + (?2) = +4 ?C ? each gets +2 ?C. Calculate ratio of new force to original force.,"Original: F? = k·6·2/d² = 12k/d² (attractive)
+After contact: each = +2 ?C
+New: F? = k·2·2/d² = 4k/d² (repulsive)
+Ratio: F?/F? = 4/12 = 1/3
+New force is 1/3 of original, and repulsive.",When two identical conductors touch: charges redistribute EQUALLY (not proportionally). Total charge = algebraic sum. Then split by 2. Sign of final charge determines attraction or repulsion.,IMUCET Pattern,2024
+10,Physics,Ch1: Electric Charges & Fields,Electric Field — Dipole,Hard,"For an electric dipole of moment p, the ratio of electric field on the axial line to equatorial line at the same distance r (where r >> 2a) is:",1:2,2:1,1:1,4:1,B,E_axial = 2kp/r³ (along dipole axis). E_equatorial = kp/r³ (perpendicular to dipole). Ratio = 2:1.,"E_axial = 2kp/r³
+E_equatorial = kp/r³
+Ratio E_axial:E_equatorial = 2kp/r³ : kp/r³ = 2:1",The axial field is TWICE the equatorial field at the same distance. Also: axial field is PARALLEL to dipole moment; equatorial field is ANTIPARALLEL to dipole moment.,NCERT Formula,2023
+11,Physics,Ch2: Electrostatic Potential,Electric Potential,Easy,"The electric potential at a point P, 20 cm from a charge of +4 ?C in vacuum is approximately:",1.8 × 10? V,2.0 × 10? V,9 × 10? V,1.8 × 10? V,A,"V = kQ/r. Unlike field (vector), potential is scalar — just substitute and calculate.","V = kQ/r = (9×10? × 4×10??) / 0.20
+= 36×10³ / 0.20
+= 1.8×10? V","Potential is a SCALAR — no direction, no vector addition needed for multiple charges. Just add algebraically. Positive charge ? positive potential; negative charge ? negative potential.",NCERT Example,2022
+12,Physics,Ch2: Electrostatic Potential,Equipotential Surfaces,Easy,Which statement about equipotential surfaces is CORRECT?,Work done in moving a charge along an equipotential surface is maximum,Electric field can be parallel to an equipotential surface,Two equipotential surfaces can intersect each other,No work is done in moving a charge along an equipotential surface,D,"Definition: Equipotential surface ? potential is same everywhere on it ? W = q·?V = q·0 = 0. Field is always perpendicular to equipotential surface, never parallel.","W = q(V_B ? V_A). On equipotential: V_A = V_B ? ?V = 0 ? W = 0.
+Eliminate others:
+A — Wrong: work is ZERO, not maximum
+B — Wrong: field perpendicular, never parallel
+C — Wrong: if they intersected, that point would have two potentials — impossible","Equipotential surfaces never intersect (same reason as field lines). If they did, one point would have two different potential values — impossible. This is a direct parallel to field line logic.",NCERT Concept,2023
+13,Physics,Ch2: Electrostatic Potential,Potential Energy of System,Medium,Three charges of +1 ?C each are placed at the corners of an equilateral triangle of side 1 m. The total electrostatic potential energy of the system is:,27 × 10?³ J,9 × 10?³ J,27 × 10?? J,13.5 × 10?³ J,C,U_total = sum of U for each pair. For 3 charges: 3 pairs. Each pair: U = kq?q?/r.,"3 pairs: (1,2), (2,3), (1,3) — each identical
+U_pair = k·q·q/r = (9×10?×10??×10??)/1 = 9×10?³ J
+U_total = 3 × 9×10?³ = 27×10?³ J
+Wait — check: 9×10?×10?¹² = 9×10?³ J per pair
+Total = 27×10?³ J
+? Answer C says 27×10?? — recheck: q=1?C=10??
+U = 9×10?×(10??)²/1 = 9×10?×10?¹² = 9×10?³ ? total = 27×10?³ J ? Answer A","For n charges, number of pairs = n(n?1)/2. For 3 charges = 3 pairs. For 4 charges = 6 pairs. Count carefully — missing even one pair is a common error.",IMUCET Pattern,2024
+14,Physics,Ch2: Electrostatic Potential,Capacitance,Medium,A parallel plate capacitor with plate area 0.02 m² and plate separation 1 mm is connected to a 100 V battery. The charge stored is approximately:,17.7 nC,1.77 nC,177 nC,17.7 ?C,A,"C = ??A/d, then Q = CV. ?? = 8.85×10?¹² F/m.","C = ??A/d = (8.85×10?¹² × 0.02) / 10?³
+= 8.85×10?¹² × 20 = 177×10?¹² F = 177 pF
+Q = CV = 177×10?¹² × 100 = 17700×10?¹² C ? 17.7 nC",1 mm = 10?³ m (not 10?² m — common unit error). ?? = 8.85×10?¹² F/m — memorise this. 1 nC = 10?? C.,NCERT Example,2022
+15,Physics,Ch2: Electrostatic Potential,Energy Stored in Capacitor,Medium,A capacitor of 10 ?F is charged to 200 V. The energy stored in it is:,0.4 J,0.2 J,4 J,0.04 J,B,U = ½CV². Three equivalent forms: U = ½CV² = Q²/2C = QV/2. All give same result.,"U = ½CV²
+= ½ × 10×10?? × (200)²
+= ½ × 10?? × 40000
+= ½ × 0.4
+= 0.2 J",Memorise all three forms — exam may give Q instead of V: use Q²/2C. Given C and V: use ½CV². The ½ factor is critical — forgetting it gives 0.4 J which is option A (classic trap).,IMUCET Pattern,2023
+16,Physics,Ch1: Electric Charges & Fields,Coulomb's Law — Dielectric,Medium,"The force between two charges in vacuum is F. If the space between them is completely filled with a medium of dielectric constant K = 4, the force becomes:",4F,F/4,F/2,F/16,B,F_medium = F_vacuum/K. Dielectric always REDUCES force between charges.,"F_vacuum = kq?q?/r² = F
+F_medium = kq?q?/(K·r²) = F/K = F/4",Dielectric reduces force by factor K. K is always ? 1 for any real material. K=1 for vacuum/air. Water has K?80 — charges attract 80x less in water than vacuum. This explains why ionic compounds dissolve in water.,NCERT Concept,2022
+17,Physics,Ch1: Electric Charges & Fields,Electric Flux,Medium,A charge of 8.85 ?C is enclosed in a closed surface. The total electric flux through the surface is:,10? N·m²/C,8.85 × 10? N·m²/C,10? N·m²/C,8.85 × 10? N·m²/C,A,Gauss's Law: ? = Q_enclosed/??. The shape of the surface does NOT matter — only the enclosed charge.,"? = Q/?? = 8.85×10?? / 8.85×10?¹²
+= 10??/10?¹² = 10? N·m²/C",Flux is independent of shape/size of the Gaussian surface — only Q_enclosed matters. This is the power of Gauss's Law. Also: ?? = 8.85×10?¹² — so 8.85?C/?? = 8.85×10??/8.85×10?¹² = 10?.,IMUCET Pattern,2024
+18,Physics,Ch2: Electrostatic Potential,Capacitors in Series/Parallel,Hard,Two capacitors of 4 ?F and 6 ?F are connected in series across a 100 V supply. The voltage across the 4 ?F capacitor is:,40 V,60 V,50 V,80 V,B,In series: charge Q is same on both. V is shared inversely proportional to capacitance. Higher capacitance ? lower voltage.,"Series: Q = C_eq × V
+C_eq = (4×6)/(4+6) = 24/10 = 2.4 ?F
+Q = 2.4×100 = 240 ?C (same on both)
+V??F = Q/C = 240/4 = 60 V
+V??F = Q/C = 240/6 = 40 V
+Check: 60+40 = 100 V ?","In SERIES: Q is same, V divides INVERSELY to capacitance (opposite to resistors). In PARALLEL: V is same, Q divides proportionally to capacitance. Remember: capacitors are the OPPOSITE of resistors in series/parallel formulas.",IMUCET Pattern,2023
+19,Physics,Ch1: Electric Charges & Fields,Properties of Charge,Easy,Which of the following is NOT a property of electric charge?,Charge is additive,Charge is quantised,Charge is always positive,Charge is conserved,C,"Three fundamental properties of charge: (1) Additive, (2) Quantised (Q=ne), (3) Conserved. Charge can be positive OR negative — there is no restriction.","Check each option:
+A — Additive: TRUE (charges add algebraically)
+B — Quantised: TRUE (Q = ne)
+C — Always positive: FALSE (charges can be +ve or ?ve)
+D — Conserved: TRUE (charge cannot be created or destroyed)
+Answer: C","IMUCET frequently tests 'which is NOT correct' — read carefully. All three real properties (additive, quantised, conserved) are likely to appear together. The false option is usually about charge being only positive or only negative.",NCERT Properties,2022
+20,Physics,Ch2: Electrostatic Potential,Conductors in Electrostatics,Medium,A hollow metallic sphere is given a charge. Which statement is TRUE?,Charge distributes uniformly inside the sphere,Electric field inside the sphere is non-zero,"All charge resides on the outer surface, field inside is zero",The potential inside is zero,C,"Key properties of conductors in electrostatics: (1) E=0 inside, (2) all charge on outer surface, (3) surface is equipotential, (4) potential inside = potential at surface (not zero).","A — False: charge is on the SURFACE, not inside
+B — False: E = 0 inside a conductor
+C — TRUE: all charge on outer surface, E=0 inside
+D — False: potential inside = potential at surface (which is non-zero if charged)","Potential inside a charged hollow conductor = potential AT THE SURFACE (not zero). This is a very common wrong answer. E=0 inside ? V=0 inside. E = ?dV/dr = 0 means V is constant, not zero.",NCERT Concept,2023

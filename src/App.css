@@ -1,0 +1,5 @@
+/* App-level styles — minimal, only for app shell */
+
+#root {
+  min-height: 100vh;
+}
