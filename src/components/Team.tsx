@@ -15,10 +15,6 @@ export const Team = () => {
             Practice in an environment
             <span className="mt-2 block text-slate-700">that feels familiar on exam day.</span>
           </h2>
-          <p className="mx-auto mt-5 max-w-xl text-base leading-7 text-slate-600 md:text-lg">
-            IMUPilot mock tests are designed around the real IMUCET test-taking experience so
-            students can become comfortable with question navigation, timing and exam flow before the actual examination.
-          </p>
         </div>
 
         <div className="rounded-[2rem] border border-slate-200 bg-white p-4 shadow-[0_18px_50px_rgba(15,23,42,0.05)] sm:p-5">

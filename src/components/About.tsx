@@ -9,10 +9,6 @@ export const About = () => {
           Know what to study.
           <span className="mt-2 block text-slate-700">Know how you're improving.</span>
         </h2>
-        <p className="mt-6 text-base leading-7 text-slate-600 md:text-lg">
-          IMUPilot connects practice, analysis and revision in a single system so you can
-          move from random effort to focused progress instead of solving questions without a plan.
-        </p>
       </div>
     </section>
   );

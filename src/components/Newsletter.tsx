@@ -25,9 +25,6 @@ export const Newsletter = () => {
             Don’t just see your score.
             <span className="mt-2 block text-slate-700">Understand it.</span>
           </h2>
-          <p className="mx-auto mt-5 max-w-lg text-base leading-7 text-slate-600 md:text-lg">
-            Review accuracy, time spent, chapter weaknesses and subject patterns to build a sharper plan for the next revision cycle.
-          </p>
         </div>
 
         <div className="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-[0_18px_50px_rgba(15,23,42,0.04)] sm:p-6">

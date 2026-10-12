@@ -27,41 +27,39 @@ export const Navbar = () => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-slate-200 bg-white/90 backdrop-blur-sm">
+    <header className="sticky top-0 z-40 w-full border-b border-sky-100 bg-white/95 backdrop-blur-md transition-all">
       <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
         <a
           href="/"
-          className="flex shrink-0 items-center gap-2 text-xl font-semibold tracking-tight text-slate-900"
+          className="flex shrink-0 items-center gap-2.5 text-xl font-bold tracking-tight text-slate-900"
         >
           <LogoIcon />
-          IMUPilot
+          <span>IMUPilot</span>
         </a>
 
-        <nav className="hidden flex-1 items-center justify-center gap-1 lg:flex">
+        <nav className="hidden flex-1 items-center justify-center gap-2 lg:flex">
           {routeList.map((route: RouteProps) => (
             <a
               href={route.href}
               key={route.label}
-              className={`text-sm font-medium text-slate-600 transition hover:text-slate-900 ${buttonVariants({
-                variant: "ghost",
-              })}`}
+              className="px-3.5 py-2 text-sm font-medium text-slate-700 transition hover:text-slate-950 hover:bg-slate-50/60 rounded-full"
             >
               {route.label}
             </a>
           ))}
         </nav>
 
-        <div className="hidden shrink-0 items-center gap-2 lg:flex">
+        <div className="hidden shrink-0 items-center gap-3 lg:flex">
           <Link
             to="/coming-soon"
-            className="text-sm font-medium text-slate-600 transition hover:text-slate-900"
+            className="px-3 py-2 text-sm font-medium text-slate-700 transition hover:text-slate-950"
           >
             Log in
           </Link>
-          <Button asChild className="rounded-full bg-slate-900 px-5 text-white hover:bg-slate-800">
-            <Link to="/coming-soon">
-              Get Started
-              <ArrowRight className="ml-2 h-4 w-4" />
+          <Button asChild className="rounded-full bg-[#0d1527] px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#1a253c] transition-all">
+            <Link to="/coming-soon" className="inline-flex items-center gap-2">
+              <span>Get Started</span>
+              <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
         </div>
