@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from './context/ThemeContext';
-import HeroLanding from './pages/HeroLanding';
+import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
 import MockTestEngine from './pages/MockTestEngine';
 import SectionalTestEngine from './pages/SectionalTestEngine';
@@ -9,6 +9,7 @@ import Learn from './pages/Learn';
 import SmartRevision from './pages/SmartRevision';
 import Admin from './pages/Admin';
 import Auth from './pages/Auth';
+import ComingSoon from './pages/ComingSoon';
 import AnalyticsPage from './pages/AnalyticsPage';
 import Contact from './pages/Contact';
 import SettingsPage from './pages/Settings';
@@ -27,7 +28,8 @@ export default function App() {
     <ThemeProvider>
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<HeroLanding />} />
+          <Route path="/" element={<Home />} />
+          <Route path="/coming-soon" element={<ComingSoon />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
