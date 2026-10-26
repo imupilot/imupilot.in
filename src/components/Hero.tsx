@@ -166,12 +166,12 @@ export const Hero = () => {
 
           <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <Button asChild className="rounded-full bg-slate-950 px-7 py-6 text-base font-semibold text-white shadow-lg hover:bg-slate-800 transition">
-              <Link to="/coming-soon">
+              <Link to="/auth">
                 Start Preparing Free
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
-            <Link to="/coming-soon" className="inline-flex items-center gap-2 text-sm font-semibold text-slate-800 transition hover:text-slate-950">
+            <Link to="/test" className="inline-flex items-center gap-2 text-sm font-semibold text-slate-800 transition hover:text-slate-950">
               Explore Mock Tests
               <ArrowRight className="h-4 w-4" />
             </Link>

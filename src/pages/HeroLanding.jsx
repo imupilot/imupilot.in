@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Anchor, Menu, X } from "lucide-react";
+import { LogoIcon } from "../components/Icons";
 
 const ANIMATED_LINES = [
   "Mock tests that mirror the real IMUCET experience",
@@ -70,49 +71,52 @@ export default function HeroLanding() {
   const f = FEATURES[activeFeature];
 
   return (
-    <div style={{ fontFamily: "'DM Sans','Segoe UI',sans-serif", background: "#F5F4F0", color: "#0D1B2A", minHeight: "100vh", overflowX: "hidden" }}>
+    <div style={{ fontFamily: "'DM Sans','Segoe UI',sans-serif", background: "#F5F4F0", color: "#0D1B2A", minHeight: "100vh", width: "100%", overflowX: "hidden", boxSizing: "border-box" }}>
       <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
       {/* NAV */}
-      <nav style={{ background: "#fff", borderBottom: "1px solid #E4E1D9", padding: isMobile ? "0 16px" : "0 40px", height: 60, display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 100 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <div style={{ width: 32, height: 32, background: "#1B3A6B", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <Anchor size={16} color="#fff" strokeWidth={2.5} />
+      <nav style={{ background: "#fff", borderBottom: "1px solid #E4E1D9", minHeight: 60, position: "sticky", top: 0, zIndex: 100 }}>
+        <div style={{ width: "100%", maxWidth: 1280, minHeight: 60, boxSizing: "border-box", margin: "0 auto", padding: "0 clamp(16px, 4vw, 40px)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+            <span style={{ display: "flex", color: "#1B3A6B" }}><LogoIcon /></span>
+            <span style={{ fontWeight: 700, fontSize: 18, letterSpacing: "-0.03em", color: "#1B3A6B" }}>IMUPilot</span>
           </div>
-          <span style={{ fontWeight: 700, fontSize: 17, letterSpacing: "-0.03em", color: "#1B3A6B" }}>IMUpilot</span>
-        </div>
 
-        {isMobile ? (
-          <button onClick={() => setMenuOpen(!menuOpen)} style={{ background: "none", border: "none", cursor: "pointer", color: "#1B3A6B", padding: 4 }}>
-            {menuOpen ? <X size={22} /> : <Menu size={22} />}
-          </button>
-        ) : (
-          <div style={{ display: "flex", gap: 28, alignItems: "center" }}>
-            <button style={{ background: "none", border: "none", cursor: "pointer", fontSize: 14, fontWeight: 500, color: "#4A5568", fontFamily: "inherit" }} onClick={() => scrollTo(featRef)}>Mock Tests</button>
-            <button style={{ background: "none", border: "none", cursor: "pointer", fontSize: 14, fontWeight: 500, color: "#4A5568", fontFamily: "inherit" }} onClick={() => scrollTo(featRef)}>Notes</button>
-            <button style={{ background: "none", border: "none", cursor: "pointer", fontSize: 14, fontWeight: 500, color: "#4A5568", fontFamily: "inherit" }} onClick={() => scrollTo(pricingRef)}>Pricing</button>
-            <button style={{ background: "none", border: "1px solid #CBD5E0", borderRadius: 8, padding: "7px 18px", fontSize: 13, fontWeight: 500, cursor: "pointer", fontFamily: "inherit", color: "#1B3A6B" }} onClick={() => navigate("/auth")}>Log in</button>
-            <button style={{ background: "#1B3A6B", color: "#fff", border: "none", borderRadius: 8, padding: "8px 20px", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }} onClick={() => navigate("/auth")}>Sign up free</button>
-          </div>
-        )}
+          {isMobile ? (
+            <button onClick={() => setMenuOpen(!menuOpen)} style={{ background: "none", border: "none", cursor: "pointer", color: "#1B3A6B", padding: 4, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              {menuOpen ? <X size={22} /> : <Menu size={22} />}
+            </button>
+          ) : (
+            <div style={{ display: "flex", gap: "clamp(12px, 2vw, 28px)", alignItems: "center" }}>
+              <button style={{ background: "none", border: "none", cursor: "pointer", fontSize: 14, fontWeight: 500, color: "#4A5568", fontFamily: "inherit" }} onClick={() => scrollTo(featRef)}>Mock Tests</button>
+              <button style={{ background: "none", border: "none", cursor: "pointer", fontSize: 14, fontWeight: 500, color: "#4A5568", fontFamily: "inherit" }} onClick={() => scrollTo(featRef)}>Notes</button>
+              <button style={{ background: "none", border: "none", cursor: "pointer", fontSize: 14, fontWeight: 500, color: "#4A5568", fontFamily: "inherit" }} onClick={() => scrollTo(pricingRef)}>Pricing</button>
+              <button style={{ background: "none", border: "1px solid #CBD5E0", borderRadius: 8, padding: "7px 18px", fontSize: 13, fontWeight: 500, cursor: "pointer", fontFamily: "inherit", color: "#1B3A6B", display: "flex", alignItems: "center", justifyContent: "center" }} onClick={() => navigate("/auth")}>Log in</button>
+              <button style={{ background: "#1B3A6B", color: "#fff", border: "none", borderRadius: 8, padding: "8px 20px", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", justifyContent: "center", whiteSpace: "nowrap" }} onClick={() => navigate("/auth")}>Sign up free</button>
+            </div>
+          )}
+        </div>
       </nav>
 
       {/* Mobile menu */}
       {isMobile && menuOpen && (
-        <div style={{ background: "#fff", borderBottom: "1px solid #E4E1D9", padding: "16px", display: "flex", flexDirection: "column", gap: 12 }}>
-          <button style={{ background: "none", border: "none", cursor: "pointer", fontSize: 15, fontWeight: 500, color: "#4A5568", fontFamily: "inherit", textAlign: "left", padding: "8px 0" }} onClick={() => scrollTo(featRef)}>Mock Tests</button>
-          <button style={{ background: "none", border: "none", cursor: "pointer", fontSize: 15, fontWeight: 500, color: "#4A5568", fontFamily: "inherit", textAlign: "left", padding: "8px 0" }} onClick={() => scrollTo(pricingRef)}>Pricing</button>
-          <button style={{ background: "#1B3A6B", color: "#fff", border: "none", borderRadius: 8, padding: "12px", fontSize: 14, fontWeight: 600, cursor: "pointer", fontFamily: "inherit", marginTop: 4 }} onClick={() => navigate("/auth")}>Log in / Sign up</button>
+        <div style={{ background: "#fff", borderBottom: "1px solid #E4E1D9" }}>
+          <div style={{ width: "100%", maxWidth: 1280, boxSizing: "border-box", margin: "0 auto", padding: "16px clamp(16px, 4vw, 40px)", display: "flex", flexDirection: "column", gap: 12 }}>
+            <button style={{ background: "none", border: "none", cursor: "pointer", fontSize: 15, fontWeight: 500, color: "#4A5568", fontFamily: "inherit", textAlign: "left", padding: "8px 0" }} onClick={() => scrollTo(featRef)}>Mock Tests</button>
+            <button style={{ background: "none", border: "none", cursor: "pointer", fontSize: 15, fontWeight: 500, color: "#4A5568", fontFamily: "inherit", textAlign: "left", padding: "8px 0" }} onClick={() => scrollTo(pricingRef)}>Pricing</button>
+            <button style={{ background: "#1B3A6B", color: "#fff", border: "none", borderRadius: 8, padding: "12px", fontSize: 14, fontWeight: 600, cursor: "pointer", fontFamily: "inherit", marginTop: 4 }} onClick={() => navigate("/auth")}>Log in / Sign up</button>
+          </div>
         </div>
       )}
 
       {/* HERO */}
-      <section style={{ padding: isMobile ? "40px 16px 32px" : "60px 40px 0" }}>
+      <section style={{ padding: isMobile ? "32px 16px 40px" : "clamp(40px, 5vw, 60px) clamp(16px, 4vw, 40px) clamp(48px, 6vw, 72px)" }}>
+        <div style={{ width: "100%", maxWidth: 1200, boxSizing: "border-box", margin: "0 auto", textAlign: "center" }}>
         <h1 style={{ fontSize: isMobile ? "3.5rem" : "clamp(4rem,9vw,8rem)", fontWeight: 700, lineHeight: 1.0, letterSpacing: "-0.04em", margin: "0 0 8px", color: "#0D1B2A" }}>Crack</h1>
         <h1 style={{ fontSize: isMobile ? "3.5rem" : "clamp(4rem,9vw,8rem)", fontWeight: 700, lineHeight: 1.0, letterSpacing: "-0.04em", margin: "0 0 28px", color: "#1B3A6B" }}>IMUCET</h1>
 
         {/* Dark card */}
-        <div style={{ borderRadius: isMobile ? 16 : 24, background: "#0D2442", overflow: "hidden" }}>
+        <div style={{ width: "100%", boxSizing: "border-box", borderRadius: isMobile ? 16 : 24, background: "#0D2442", overflow: "hidden", textAlign: "center" }}>
           {/* Service tags */}
           <div style={{ display: "flex", flexWrap: "wrap", borderBottom: "1px solid rgba(255,255,255,0.08)", padding: isMobile ? "0 16px" : "0 40px" }}>
             {["Full Mocks", "Sectional Tests", "Topic Notes", "Smart Analytics", "Past Year Papers"].map((s, i) => (
@@ -123,23 +127,24 @@ export default function HeroLanding() {
           </div>
 
           {/* Bottom */}
-          <div style={{ padding: isMobile ? "28px 16px" : "48px 40px 40px" }}>
+          <div style={{ padding: isMobile ? "24px 16px" : "clamp(32px, 4vw, 48px) clamp(24px, 4vw, 40px) 40px" }}>
             <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.45)", marginBottom: 12 }}>CRACK IMUCET</div>
-            <div style={{ height: 52, overflow: "hidden", marginBottom: 20 }}>
+            <div style={{ minHeight: 52, overflow: "hidden", margin: "0 auto 20px", maxWidth: 720 }}>
               <p style={{ fontSize: isMobile ? "1rem" : "clamp(1.2rem,2.5vw,1.6rem)", fontWeight: 500, color: "#fff", margin: 0, lineHeight: 1.4, opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(10px)", transition: "opacity 0.35s ease, transform 0.35s ease" }}>
                 {ANIMATED_LINES[lineIdx]}
               </p>
             </div>
-            <button onClick={() => navigate("/auth")} style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)", borderRadius: 12, padding: "14px 20px", cursor: "pointer", color: "#fff", fontFamily: "inherit", fontWeight: 600, fontSize: 14, display: "block", width: isMobile ? "100%" : "auto" }}>
+            <button onClick={() => navigate("/auth")} style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)", borderRadius: 12, padding: "14px 20px", cursor: "pointer", color: "#fff", fontFamily: "inherit", fontWeight: 600, fontSize: 14, display: "block", width: isMobile ? "100%" : "auto", margin: "0 auto" }}>
               Ready to Crack IMUCET? Get started →
             </button>
           </div>
         </div>
+        </div>
       </section>
 
       {/* FEATURES */}
-      <section ref={featRef} style={{ background: "#fff", padding: isMobile ? "48px 16px" : "100px 40px" }}>
-        <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+      <section ref={featRef} style={{ background: "#fff", padding: isMobile ? "48px 16px" : "clamp(64px, 8vw, 88px) clamp(16px, 4vw, 40px)" }}>
+        <div style={{ width: "100%", maxWidth: 1100, boxSizing: "border-box", margin: "0 auto" }}>
           <div style={{ textAlign: "center", marginBottom: isMobile ? 32 : 56 }}>
             <h2 style={{ fontSize: isMobile ? "1.6rem" : "clamp(1.8rem,4vw,3rem)", fontWeight: 700, letterSpacing: "-0.03em", margin: "0 0 10px" }}>Make IMUCET feel simple</h2>
             <p style={{ fontSize: 15, color: "#718096", margin: 0 }}>Simple explanations. Structured practice. Only what matters.</p>
@@ -266,8 +271,8 @@ export default function HeroLanding() {
       {/* FOOTER */}
       <footer style={{ background: "#0D2442", color: "rgba(255,255,255,0.5)", padding: isMobile ? "24px 16px" : "32px 40px", display: "flex", flexDirection: isMobile ? "column" : "row", alignItems: isMobile ? "flex-start" : "center", justifyContent: "space-between", gap: 8 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <Anchor size={16} color="#fff" strokeWidth={2.5} />
-          <span style={{ fontWeight: 700, fontSize: 15, color: "#fff", letterSpacing: "-0.02em" }}>IMUpilot</span>
+          <span style={{ display: "flex", color: "#fff" }}><LogoIcon /></span>
+          <span style={{ fontWeight: 700, fontSize: 16, color: "#fff", letterSpacing: "-0.02em" }}>IMUPilot</span>
           <span style={{ fontSize: 12, marginLeft: 6 }}>India's first complete IMUCET prep platform</span>
         </div>
         <div style={{ fontSize: 11 }}>© 2026 IMUpilot</div>

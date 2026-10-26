@@ -23,12 +23,18 @@ function ProtectedRoute({ children }) {
   return children;
 }
 
+function PublicHomeRoute() {
+  const user = JSON.parse(localStorage.getItem('user') || 'null');
+  if (user) return <Navigate to="/dashboard" replace />;
+  return <Home />;
+}
+
 export default function App() {
   return (
     <ThemeProvider>
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<PublicHomeRoute />} />
           <Route path="/coming-soon" element={<ComingSoon />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/admin" element={<Admin />} />

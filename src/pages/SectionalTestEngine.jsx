@@ -1,19 +1,264 @@
 import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import MathText from '../components/MathText';
+import { LogoIcon } from '../components/Icons';
 
 const supabase = createClient(
   import.meta.env.VITE_SUPABASE_URL,
   import.meta.env.VITE_SUPABASE_ANON_KEY
 );
 
+function createChapters(subjectId, classLevel, names, orderOffset = 0) {
+  return names.map((name, index) => ({
+    id: `${subjectId.toLowerCase().replaceAll(' ', '-')}-${classLevel ? `class-${classLevel.toLowerCase()}-` : ''}${index + 1}`,
+    name,
+    classLevel,
+    order: orderOffset + index + 1,
+  }));
+}
+
 const SUBJECTS = [
-  { id: 'Physics',          label: 'Physics',           color: 'var(--accent-info)', bg: 'var(--accent-info-subtle)', icon: '⚡' },
-  { id: 'Chemistry',        label: 'Chemistry',          color: 'var(--accent-success)', bg: 'var(--accent-success-subtle)', icon: '🧪' },
-  { id: 'Mathematics',      label: 'Mathematics',        color: 'var(--accent-warning)', bg: 'var(--accent-warning-subtle)', icon: '📐' },
-  { id: 'English',          label: 'English',            color: 'var(--accent-primary)', bg: 'var(--accent-primary-subtle)', icon: '📝' },
-  { id: 'General Aptitude', label: 'General Aptitude',   color: 'var(--accent-danger)', bg: 'var(--accent-danger-subtle)', icon: '🧠' },
+  {
+    id: 'Physics', label: 'Physics', color: 'var(--accent-info)', bg: 'var(--accent-info-subtle)', icon: '⚡',
+    chapters: [
+      ...createChapters('Physics', 'XI', [
+        'Units and Measurements',
+        'Motion in a Straight Line',
+        'Motion in a Plane',
+        'Laws of Motion',
+        'Work, Energy and Power',
+        'System of Particles and Rotational Motion',
+        'Gravitation',
+        'Mechanical Properties of Solids',
+        'Mechanical Properties of Fluids',
+        'Thermal Properties of Matter',
+        'Thermodynamics',
+        'Kinetic Theory',
+        'Oscillations',
+        'Waves',
+      ]),
+      ...createChapters('Physics', 'XII', [
+        'Electric Charges and Fields',
+        'Electrostatic Potential and Capacitance',
+        'Current Electricity',
+        'Moving Charges and Magnetism',
+        'Magnetism and Matter',
+        'Electromagnetic Induction',
+        'Alternating Current',
+        'Electromagnetic Waves',
+        'Ray Optics and Optical Instruments',
+        'Wave Optics',
+        'Dual Nature of Radiation and Matter',
+        'Atoms',
+        'Nuclei',
+        'Semiconductor Electronics',
+      ], 14),
+    ],
+  },
+  {
+    id: 'Chemistry', label: 'Chemistry', color: 'var(--accent-success)', bg: 'var(--accent-success-subtle)', icon: '🧪',
+    chapters: [
+      ...createChapters('Chemistry', 'XI', [
+        'Some Basic Concepts of Chemistry',
+        'Structure of Atom',
+        'Classification of Elements and Periodicity',
+        'Chemical Bonding and Molecular Structure',
+        'Chemical Thermodynamics',
+        'Equilibrium',
+        'Redox Reactions',
+        'Organic Chemistry — Basic Principles and Techniques',
+        'Hydrocarbons',
+      ]),
+      ...createChapters('Chemistry', 'XII', [
+        'Solutions',
+        'Electrochemistry',
+        'Chemical Kinetics',
+        'd- and f-Block Elements',
+        'Coordination Compounds',
+        'Haloalkanes and Haloarenes',
+        'Alcohols, Phenols and Ethers',
+        'Aldehydes, Ketones and Carboxylic Acids',
+        'Amines',
+        'Biomolecules',
+      ], 9),
+    ],
+  },
+  {
+    id: 'Mathematics', label: 'Mathematics', color: 'var(--accent-warning)', bg: 'var(--accent-warning-subtle)', icon: '📐',
+    chapters: [
+      ...createChapters('Mathematics', 'XI', [
+        'Sets',
+        'Relations and Functions',
+        'Trigonometric Functions',
+        'Complex Numbers and Quadratic Equations',
+        'Linear Inequalities',
+        'Permutations and Combinations',
+        'Binomial Theorem',
+        'Sequence and Series',
+        'Straight Lines',
+        'Conic Sections',
+        'Introduction to Three-Dimensional Geometry',
+        'Limits and Derivatives',
+        'Statistics',
+        'Probability',
+      ]),
+      ...createChapters('Mathematics', 'XII', [
+        'Relations and Functions',
+        'Inverse Trigonometric Functions',
+        'Matrices',
+        'Determinants',
+        'Continuity and Differentiability',
+        'Applications of Derivatives',
+        'Integrals',
+        'Applications of Integrals',
+        'Differential Equations',
+        'Vector Algebra',
+        'Three-Dimensional Geometry',
+        'Linear Programming',
+        'Probability',
+      ], 14),
+    ],
+  },
+  {
+    id: 'English', label: 'English', color: 'var(--accent-primary)', bg: 'var(--accent-primary-subtle)', icon: '📝',
+    chapters: createChapters('English', null, [
+      'Grammar',
+      'Vocabulary',
+      'Reading Comprehension',
+      'Sentence Correction',
+      'Synonyms and Antonyms',
+      'Idioms and Phrases',
+      'Para Jumbles',
+      'Fill in the Blanks',
+    ]),
+  },
+  {
+    id: 'General Aptitude', label: 'General Aptitude', color: 'var(--accent-danger)', bg: 'var(--accent-danger-subtle)', icon: '🧠',
+    chapters: createChapters('General Aptitude', null, [
+      'Quantitative Aptitude',
+      'Numerical Ability',
+      'Logical Reasoning',
+      'Analytical Reasoning',
+      'Data Interpretation',
+      'General Mental Ability',
+    ]),
+  },
 ];
+
+const TOPIC_NAMES_BY_CHAPTER = {
+  Physics: {
+    'Units and Measurements': ['Physical quantities and units', 'Dimensional analysis', 'Measurement errors and significant figures'],
+    'Motion in a Straight Line': ['Position, displacement and velocity', 'Uniformly accelerated motion', 'Motion graphs'],
+    'Motion in a Plane': ['Vectors', 'Projectile motion', 'Uniform circular motion'],
+    'Laws of Motion': ['Newton’s laws of motion', 'Friction', 'Circular motion and force'],
+    'Work, Energy and Power': ['Work and kinetic energy', 'Potential energy and conservation of energy', 'Power and collisions'],
+    'System of Particles and Rotational Motion': ['Centre of mass', 'Torque and angular momentum', 'Moment of inertia and rotational dynamics'],
+    Gravitation: ['Universal law of gravitation', 'Gravitational field and potential', 'Satellites and escape velocity'],
+    'Mechanical Properties of Solids': ['Stress and strain', 'Elastic moduli', 'Stress-strain relationships'],
+    'Mechanical Properties of Fluids': ['Pressure and fluid statics', 'Fluid flow and continuity', 'Bernoulli’s principle and viscosity'],
+    'Thermal Properties of Matter': ['Temperature and thermal expansion', 'Calorimetry and heat transfer', 'Change of state'],
+    Thermodynamics: ['Thermal equilibrium and the zeroth law', 'First law of thermodynamics', 'Heat engines and the second law'],
+    'Kinetic Theory': ['Kinetic model of gases', 'Pressure and molecular speeds', 'Degrees of freedom and specific heat'],
+    Oscillations: ['Simple harmonic motion', 'Energy in oscillatory motion', 'Simple pendulum'],
+    Waves: ['Wave motion and wave speed', 'Superposition and standing waves', 'Sound waves and beats'],
+    'Electric Charges and Fields': ['Electric charge and Coulomb’s law', 'Electric field and field lines', 'Electric dipole and Gauss’s law'],
+    'Electrostatic Potential and Capacitance': ['Electric potential and potential energy', 'Equipotential surfaces', 'Capacitance and dielectrics'],
+    'Current Electricity': ['Electric current and drift velocity', 'Ohm’s law and resistance', 'Cells and Kirchhoff’s laws'],
+    'Moving Charges and Magnetism': ['Magnetic force on charges and currents', 'Motion in a magnetic field', 'Biot–Savart law and Ampere’s law'],
+    'Magnetism and Matter': ['Magnetic dipoles and field', 'Earth’s magnetism', 'Magnetic properties of materials'],
+    'Electromagnetic Induction': ['Magnetic flux and Faraday’s law', 'Lenz’s law', 'Inductance and eddy currents'],
+    'Alternating Current': ['AC voltage and current', 'Reactance and impedance', 'Resonance and transformers'],
+    'Electromagnetic Waves': ['Displacement current', 'Electromagnetic wave properties', 'Electromagnetic spectrum'],
+    'Ray Optics and Optical Instruments': ['Reflection and refraction', 'Mirrors and lenses', 'Optical instruments'],
+    'Wave Optics': ['Huygens’ principle', 'Interference', 'Diffraction and polarisation'],
+    'Dual Nature of Radiation and Matter': ['Photoelectric effect', 'Matter waves', 'Wave-particle duality'],
+    Atoms: ['Rutherford model', 'Bohr model', 'Atomic spectra'],
+    Nuclei: ['Nuclear composition and size', 'Mass defect and binding energy', 'Radioactivity and nuclear reactions'],
+    'Semiconductor Electronics': ['Energy bands and semiconductors', 'p-n junction diode', 'Transistors and logic gates'],
+  },
+  Chemistry: {
+    'Some Basic Concepts of Chemistry': ['Laws of chemical combination', 'Atomic and molecular masses', 'Mole concept and stoichiometry'],
+    'Structure of Atom': ['Electromagnetic radiation and spectra', 'Bohr model', 'Quantum numbers and orbitals'],
+    'Classification of Elements and Periodicity': ['Modern periodic table', 'Periodic trends in atomic properties', 'Periodic trends in chemical properties'],
+    'Chemical Bonding and Molecular Structure': ['Ionic and covalent bonding', 'Lewis structures and bond parameters', 'VSEPR, hybridisation and molecular orbital theory'],
+    'Chemical Thermodynamics': ['System, state and thermodynamic processes', 'First law and enthalpy', 'Entropy and Gibbs energy'],
+    Equilibrium: ['Dynamic and chemical equilibrium', 'Equilibrium constants and Le Chatelier’s principle', 'Ionic equilibrium, pH and buffers'],
+    'Redox Reactions': ['Oxidation numbers', 'Balancing redox reactions', 'Redox reactions and electrode processes'],
+    'Organic Chemistry — Basic Principles and Techniques': ['Nomenclature and representation', 'Electronic effects and reaction intermediates', 'Organic reaction types and purification'],
+    Hydrocarbons: ['Alkanes', 'Alkenes and alkynes', 'Aromatic hydrocarbons'],
+    Solutions: ['Concentration terms and solubility', 'Vapour pressure and Raoult’s law', 'Colligative properties'],
+    Electrochemistry: ['Electrochemical cells and cell potential', 'Nernst equation', 'Conductance and electrolysis'],
+    'Chemical Kinetics': ['Rate of reaction and rate law', 'Order and molecularity', 'Integrated rate equations and activation energy'],
+    'd- and f-Block Elements': ['Electronic configuration and trends', 'Properties of transition elements', 'Lanthanides and actinides'],
+    'Coordination Compounds': ['Ligands and coordination nomenclature', 'Isomerism in coordination compounds', 'Bonding, colour and magnetic properties'],
+    'Haloalkanes and Haloarenes': ['Nomenclature and structure', 'Nucleophilic substitution reactions', 'Preparation and reactions of haloarenes'],
+    'Alcohols, Phenols and Ethers': ['Alcohols: preparation and reactions', 'Phenols: acidity and reactions', 'Ethers: preparation and reactions'],
+    'Aldehydes, Ketones and Carboxylic Acids': ['Structure and preparation', 'Nucleophilic addition reactions', 'Carboxylic acid reactions'],
+    Amines: ['Classification and nomenclature', 'Basicity and preparation', 'Reactions of amines and diazonium salts'],
+    Biomolecules: ['Carbohydrates', 'Proteins and enzymes', 'Vitamins and nucleic acids'],
+  },
+  Mathematics: {
+    Sets: ['Set representation and subsets', 'Operations on sets', 'Venn diagrams and complements'],
+    'Relations and Functions': ['Relations and their properties', 'Functions and domain/range', 'Types and composition of functions'],
+    'Trigonometric Functions': ['Angles and trigonometric functions', 'Trigonometric identities', 'Trigonometric equations and graphs'],
+    'Complex Numbers and Quadratic Equations': ['Complex numbers and algebra', 'Argand plane and modulus', 'Quadratic equations and roots'],
+    'Linear Inequalities': ['Linear inequalities in one variable', 'Linear inequalities in two variables', 'Graphical solution of systems'],
+    'Permutations and Combinations': ['Fundamental counting principle', 'Permutations', 'Combinations'],
+    'Binomial Theorem': ['Binomial expansion for positive integral index', 'General and middle terms', 'Binomial coefficients and applications'],
+    'Sequence and Series': ['Arithmetic progressions', 'Geometric progressions', 'Special series and sums'],
+    'Straight Lines': ['Slope and angle between lines', 'Forms of the equation of a line', 'Distance and family of lines'],
+    'Conic Sections': ['Circle', 'Parabola', 'Ellipse and hyperbola'],
+    'Introduction to Three-Dimensional Geometry': ['Coordinates in three dimensions', 'Distance formula', 'Section formula'],
+    'Limits and Derivatives': ['Limits and continuity basics', 'Derivative from first principles', 'Algebra of derivatives'],
+    Statistics: ['Measures of dispersion', 'Mean deviation', 'Variance and standard deviation'],
+    Probability: ['Random experiments and events', 'Addition and multiplication rules', 'Conditional probability and Bayes’ theorem'],
+    'Inverse Trigonometric Functions': ['Principal value branches', 'Domains and ranges', 'Identities and equations'],
+    Matrices: ['Types and equality of matrices', 'Matrix operations', 'Transpose and inverse of a matrix'],
+    Determinants: ['Evaluation and properties', 'Minors and cofactors', 'Applications to systems of linear equations'],
+    'Continuity and Differentiability': ['Continuity of functions', 'Differentiability and derivatives', 'Chain rule and derivatives of inverse functions'],
+    'Applications of Derivatives': ['Rate of change', 'Increasing and decreasing functions', 'Tangents, normals and optimisation'],
+    Integrals: ['Indefinite integrals and standard forms', 'Methods of integration', 'Definite integrals and properties'],
+    'Applications of Integrals': ['Area under a curve', 'Area between curves', 'Area using definite integrals'],
+    'Differential Equations': ['Order, degree and formation', 'General and particular solutions', 'First-order differential equations'],
+    'Vector Algebra': ['Vectors and components', 'Scalar and vector products', 'Applications of vector products'],
+    'Three-Dimensional Geometry': ['Direction ratios and direction cosines', 'Equations of a line in space', 'Angles and distances in three dimensions'],
+    'Linear Programming': ['Linear programming terminology', 'Formulation of constraints', 'Graphical method and optimal solutions'],
+  },
+  English: {
+    Grammar: ['Parts of speech', 'Tenses and verb forms', 'Subject–verb agreement', 'Articles and determiners', 'Prepositions and conjunctions'],
+    Vocabulary: ['Word meanings in context', 'Word formation and roots', 'Commonly confused words'],
+    'Reading Comprehension': ['Main idea and purpose', 'Inference and implications', 'Tone and vocabulary in context'],
+    'Sentence Correction': ['Grammar and usage errors', 'Sentence structure and clauses', 'Parallelism and modifiers'],
+    'Synonyms and Antonyms': ['Synonyms in context', 'Antonyms in context', 'Nuance and degree of meaning'],
+    'Idioms and Phrases': ['Common idiomatic expressions', 'Phrasal verbs', 'Meaning and usage in context'],
+    'Para Jumbles': ['Sentence sequencing', 'Opening and concluding sentences', 'Cohesion and transition clues'],
+    'Fill in the Blanks': ['Single-word completion', 'Grammar-based completion', 'Contextual vocabulary and cloze passages'],
+  },
+  'General Aptitude': {
+    'Quantitative Aptitude': ['Percentages, ratio and proportion', 'Profit, loss and interest', 'Time, work and distance', 'Averages and mixtures'],
+    'Numerical Ability': ['Number systems and simplification', 'Fractions, decimals and operations', 'Sequences and missing numbers'],
+    'Logical Reasoning': ['Series and patterns', 'Coding and decoding', 'Direction sense and ordering', 'Syllogisms'],
+    'Analytical Reasoning': ['Arrangements and grouping', 'Conditional logic and constraints', 'Statement-based reasoning'],
+    'Data Interpretation': ['Tables and charts', 'Graphs and comparisons', 'Ratios, percentages and data sufficiency'],
+    'General Mental Ability': ['Classification and analogy', 'Spatial and visual reasoning', 'Basic logic puzzles'],
+  },
+};
+
+const TOPIC_CURRICULUM = Object.fromEntries(
+  Object.entries(TOPIC_NAMES_BY_CHAPTER).map(([subjectId, chapterTopics]) => {
+    const subject = SUBJECTS.find(item => item.id === subjectId);
+    return [subjectId, Object.fromEntries(subject.chapters.map(chapter => [
+      chapter.id,
+      (chapterTopics[chapter.name] || []).map((name, index) => ({
+        id: `${chapter.id}-topic-${index + 1}`,
+        name,
+        order: index + 1,
+        parentChapterId: chapter.id,
+        parentChapterName: chapter.name,
+      })),
+    ]))];
+  })
+);
 
 function formatTime(seconds) {
   const h = Math.floor(seconds / 3600);
@@ -29,10 +274,10 @@ function SubjectSelect({ onSelect }) {
     <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', fontFamily: "'DM Sans','Segoe UI',sans-serif" }}>
       <div style={{ background: 'var(--bg-elevated)', borderBottom: '1px solid var(--border-subtle)', padding: '0 32px', height: 60, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--accent-navy-subtle)', border: '2px solid var(--accent-navy)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <span style={{ fontSize: 8, fontWeight: 800, color: 'var(--accent-navy)', textAlign: 'center', lineHeight: 1.2 }}>IMU<br/>PILOT</span>
-          </div>
-          <span style={{ fontWeight: 800, fontSize: 15, color: 'var(--accent-navy)' }}>IMUpilot</span>
+          <span style={{ display: 'flex', color: 'var(--accent-navy, #0F172A)' }}>
+            <LogoIcon />
+          </span>
+          <span style={{ fontWeight: 800, fontSize: 16, color: 'var(--accent-navy, #0F172A)' }}>IMUPilot</span>
         </div>
         <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--text-primary)' }}>Sectional Tests</div>
         <div style={{ width: 80 }} />
@@ -70,29 +315,50 @@ function SubjectSelect({ onSelect }) {
 function ChapterSelect({ subject, onSelect, onBack }) {
   const [chapters, setChapters] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
+    let active = true;
     async function fetchChapters() {
-      const { data } = await supabase
+      const { data, error: queryError } = await supabase
         .from('questions')
         .select('chapter')
         .eq('subject', subject.id);
 
-      if (data) {
-        const unique = [...new Set(data.map(q => q.chapter).filter(Boolean))];
-        // If no chapters, create one default
-        if (unique.length === 0) {
-          setChapters([{ name: 'All Questions', count: data.length }]);
-        } else {
-          const counts = {};
-          data.forEach(q => { if (q.chapter) counts[q.chapter] = (counts[q.chapter] || 0) + 1; });
-          setChapters(unique.map(ch => ({ name: ch, count: counts[ch] })));
-        }
+      if (!active) return;
+      if (queryError) {
+        console.error('Unable to load chapter question counts.', queryError);
+        setError(queryError.message || 'Unable to load question counts. Please try again.');
+        setLoading(false);
+        return;
       }
+
+      const counts = new Map();
+      (data || []).forEach(question => {
+        if (question.chapter) counts.set(question.chapter, (counts.get(question.chapter) || 0) + 1);
+      });
+      setChapters(subject.chapters.map(chapter => ({
+        ...chapter,
+        count: counts.get(chapter.name) || 0,
+      })).sort((a, b) => a.order - b.order));
       setLoading(false);
     }
-    fetchChapters();
-  }, [subject.id]);
+    fetchChapters().catch(queryError => {
+      console.error('Unable to load chapter question counts.', queryError);
+      if (active) {
+        setError(queryError.message || 'Unable to load question counts. Please try again.');
+        setLoading(false);
+      }
+    });
+    return () => { active = false; };
+  }, [subject]);
+
+  const chapterGroups = chapters.reduce((groups, chapter) => {
+    const key = chapter.classLevel || '';
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(chapter);
+    return groups;
+  }, {});
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', fontFamily: "'DM Sans','Segoe UI',sans-serif" }}>
@@ -117,28 +383,129 @@ function ChapterSelect({ subject, onSelect, onBack }) {
 
         {loading ? (
           <div style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: 40 }}>Loading chapters...</div>
-        ) : chapters.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: 60 }}>
-            <div style={{ fontSize: 36, marginBottom: 12 }}>📭</div>
-            <div style={{ fontWeight: 600, color: 'var(--text-primary)', marginBottom: 6 }}>No questions yet</div>
-            <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>Questions for {subject.label} are coming soon.</div>
+        ) : error ? (
+          <div role="alert" style={{ textAlign: 'center', color: 'var(--accent-danger)', padding: 40 }}>{error}</div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            {Object.entries(chapterGroups).map(([classLevel, groupChapters]) => (
+              <section key={classLevel || 'sections'}>
+                {classLevel && <h3 style={{ margin: '0 0 10px', color: 'var(--text-secondary)', fontSize: 12, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Class {classLevel}</h3>}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  {groupChapters.map((ch, i) => (
+                    <div key={ch.id} onClick={() => { if (ch.count > 0) onSelect(ch); }}
+                      style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)', borderRadius: 14, padding: '16px 20px', cursor: ch.count > 0 ? 'pointer' : 'default', display: 'flex', alignItems: 'center', gap: 16, transition: 'all 0.15s', opacity: ch.count > 0 ? 1 : 0.75 }}
+                      onMouseEnter={e => { if (ch.count > 0) { e.currentTarget.style.borderColor = subject.color; e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.06)'; } }}
+                      onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-subtle)'; e.currentTarget.style.boxShadow = 'none'; }}
+                    >
+                      <div style={{ width: 36, height: 36, borderRadius: 10, background: subject.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 13, color: subject.color, flexShrink: 0 }}>
+                        {i + 1}
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontWeight: 600, fontSize: 14, color: 'var(--text-primary)' }}>{ch.name}</div>
+                        <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2 }}>{ch.count > 0 ? `${ch.count} questions` : 'No questions yet'}</div>
+                      </div>
+                      <div style={{ fontWeight: 700, fontSize: 13, color: ch.count > 0 ? subject.color : 'var(--text-secondary)' }}>
+                        {ch.count > 0 ? 'Start →' : 'Coming soon'}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            ))}
           </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── Topic Selection ──────────────────────────────────────────────────────────
+function TopicSelect({ subject, chapter, onSelect, onBack }) {
+  const [topics, setTopics] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const curriculumTopics = TOPIC_CURRICULUM[subject.id]?.[chapter.id] || [];
+
+  useEffect(() => {
+    let active = true;
+    async function fetchTopicCounts() {
+      const { data, error: queryError } = await supabase
+        .from('questions')
+        .select('topic')
+        .eq('subject', subject.id)
+        .eq('chapter', chapter.name);
+
+      if (!active) return;
+      if (queryError) {
+        console.error('Unable to load topic question counts.', queryError);
+        setError(queryError.message || 'Unable to load topic counts. Please try again.');
+        setLoading(false);
+        return;
+      }
+
+      const counts = new Map();
+      (data || []).forEach(question => {
+        if (question.topic) counts.set(question.topic, (counts.get(question.topic) || 0) + 1);
+      });
+      setTopics(curriculumTopics.map(topic => ({
+        ...topic,
+        count: counts.get(topic.name) || 0,
+      })).sort((a, b) => a.order - b.order));
+      setLoading(false);
+    }
+    fetchTopicCounts().catch(queryError => {
+      console.error('Unable to load topic question counts.', queryError);
+      if (active) {
+        setError(queryError.message || 'Unable to load topic counts. Please try again.');
+        setLoading(false);
+      }
+    });
+    return () => { active = false; };
+  }, [chapter.name, curriculumTopics, subject.id]);
+
+  return (
+    <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', fontFamily: "'DM Sans','Segoe UI',sans-serif" }}>
+      <div style={{ background: 'var(--bg-elevated)', borderBottom: '1px solid var(--border-subtle)', padding: '0 32px', height: 60, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <button onClick={onBack} style={{ background: 'none', border: '1px solid var(--border-subtle)', borderRadius: 8, padding: '7px 16px', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)', fontFamily: 'inherit' }}>
+          ← Back
+        </button>
+        <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--text-primary)' }}>{subject.label} · {chapter.name}</div>
+        <div style={{ width: 80 }} />
+      </div>
+
+      <div style={{ maxWidth: 720, margin: '0 auto', padding: '48px 24px' }}>
+        <div style={{ marginBottom: 32, display: 'flex', alignItems: 'center', gap: 14 }}>
+          <div style={{ width: 52, height: 52, borderRadius: 14, background: subject.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24 }}>
+            {subject.icon}
+          </div>
+          <div>
+            <div style={{ fontWeight: 800, fontSize: 22, color: 'var(--text-primary)' }}>{chapter.name}</div>
+            <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>Choose a topic · IMUPilot-organized categories, not an official IMU topic list</div>
+          </div>
+        </div>
+
+        {loading ? (
+          <div style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: 40 }}>Loading topics...</div>
+        ) : error ? (
+          <div role="alert" style={{ textAlign: 'center', color: 'var(--accent-danger)', padding: 40 }}>{error}</div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {chapters.map((ch, i) => (
-              <div key={ch.name} onClick={() => onSelect(ch)}
-                style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)', borderRadius: 14, padding: '16px 20px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 16, transition: 'all 0.15s' }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor = subject.color; e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.06)'; }}
+            {topics.map((topic, index) => (
+              <div key={topic.id} onClick={() => { if (topic.count > 0) onSelect(topic); }}
+                style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)', borderRadius: 14, padding: '16px 20px', cursor: topic.count > 0 ? 'pointer' : 'default', display: 'flex', alignItems: 'center', gap: 16, transition: 'all 0.15s', opacity: topic.count > 0 ? 1 : 0.75 }}
+                onMouseEnter={e => { if (topic.count > 0) { e.currentTarget.style.borderColor = subject.color; e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.06)'; } }}
                 onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-subtle)'; e.currentTarget.style.boxShadow = 'none'; }}
               >
                 <div style={{ width: 36, height: 36, borderRadius: 10, background: subject.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 13, color: subject.color, flexShrink: 0 }}>
-                  {i + 1}
+                  {index + 1}
                 </div>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 600, fontSize: 14, color: 'var(--text-primary)' }}>{ch.name}</div>
-                  <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2 }}>{ch.count} questions</div>
+                  <div style={{ fontWeight: 600, fontSize: 14, color: 'var(--text-primary)' }}>{topic.name}</div>
+                  <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2 }}>{topic.count > 0 ? `${topic.count} questions` : 'No questions yet'}</div>
                 </div>
-                <div style={{ fontWeight: 700, fontSize: 13, color: subject.color }}>Start →</div>
+                <div style={{ fontWeight: 700, fontSize: 13, color: topic.count > 0 ? subject.color : 'var(--text-secondary)' }}>
+                  {topic.count > 0 ? 'Start →' : 'Coming soon'}
+                </div>
               </div>
             ))}
           </div>
@@ -149,7 +516,7 @@ function ChapterSelect({ subject, onSelect, onBack }) {
 }
 
 // ─── Test Engine ──────────────────────────────────────────────────────────────
-function TestEngine({ subject, chapter, onBack }) {
+function TestEngine({ subject, chapter, topic, onBack }) {
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -160,17 +527,37 @@ function TestEngine({ subject, chapter, onBack }) {
   const [submitted, setSubmitted] = useState(false);
   const [result, setResult] = useState(null);
 
+  const [attemptToken, setAttemptToken] = useState(null);
+
   useEffect(() => {
     async function fetchQuestions() {
-      let query = supabase.from('questions').select('*').eq('subject', subject.id);
-      if (chapter.name !== 'All Questions') query = query.eq('chapter', chapter.name);
-      const { data } = await query;
-      setQuestions(data || []);
-      setTimeRemaining((data?.length || 50) * 54); // ~54 sec per question
-      setLoading(false);
+      try {
+        const authData = await supabase.auth.getSession();
+        const token = authData.data.session?.access_token;
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+        
+        const res = await fetch(`${apiUrl}/api/tests/start`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...(token && { Authorization: `Bearer ${token}` }) },
+          body: JSON.stringify({
+            testType: 'sectional',
+            filters: { subject: subject.id, chapter: chapter.name, topic: topic?.name }
+          })
+        });
+        const data = await res.json();
+        if (data.success) {
+          setQuestions(data.questions || []);
+          setAttemptToken(data.attemptToken);
+          setTimeRemaining((data.questions?.length || 50) * 54); // ~54 sec per question
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
     }
     fetchQuestions();
-  }, [subject.id, chapter.name]);
+  }, [subject.id, chapter.name, topic?.name]);
 
   useEffect(() => {
     if (loading || submitted) return;
@@ -193,38 +580,66 @@ function TestEngine({ subject, chapter, onBack }) {
     setAnswers(prev => { const p = { ...prev }; delete p[currentIndex]; return p; });
   };
 
-  const handleSubmit = useCallback(() => {
+  const handleSubmit = useCallback(async () => {
     const timeTaken = Math.floor((Date.now() - startTime) / 1000);
-    let correct = 0, incorrect = 0, skipped = 0;
+    try {
+      const authData = await supabase.auth.getSession();
+      const token = authData.data.session?.access_token;
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      
+      const answersById = {};
+      questions.forEach((q, i) => {
+        if (answers[i]) answersById[q.id] = answers[i];
+      });
 
-    questions.forEach((q, i) => {
-      const selected = answers[i];
-      if (!selected) { skipped++; return; }
-      const selectedLetter = selected.replace('option_', '');
-      if (selectedLetter === q.correct_option) correct++;
-      else incorrect++;
-    });
+      const res = await fetch(`${apiUrl}/api/tests/evaluate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...(token && { Authorization: `Bearer ${token}` }) },
+        body: JSON.stringify({
+          attemptToken,
+          answers: answersById,
+          timeTaken
+        })
+      });
+      const data = await res.json();
+      
+      if (data.success) {
+        const { correct, incorrect, skipped, questions: realQuestions } = data;
+        const score = correct - incorrect * 0.25;
+        const attempted = correct + incorrect;
+        
+        const finalQuestions = questions.map(q => {
+          const fullQ = realQuestions.find(rq => rq.id === q.id);
+          return fullQ || q;
+        });
 
-    const score = correct - incorrect * 0.25;
-    const attempted = correct + incorrect;
-    setResult({
-      correct, incorrect, skipped,
-      score: Math.round(score * 100) / 100,
-      total: questions.length,
-      accuracy: attempted > 0 ? Math.round((correct / attempted) * 100) : 0,
-      timeTaken,
-      questions,
-      answers,
-    });
+        setResult({
+          correct, incorrect, skipped,
+          score: Math.round(score * 100) / 100,
+          total: finalQuestions.length,
+          accuracy: attempted > 0 ? Math.round((correct / attempted) * 100) : 0,
+          timeTaken,
+          questions: finalQuestions,
+          answers,
+        });
+      }
+    } catch (err) {
+      console.error(err);
+    }
     setSubmitted(true);
-  }, [answers, questions, startTime]);
+  }, [answers, questions, startTime, attemptToken]);
 
   // ── Result Screen ──
   if (submitted && result) {
     return (
       <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', fontFamily: "'DM Sans','Segoe UI',sans-serif" }}>
         <div style={{ background: 'var(--bg-elevated)', borderBottom: '1px solid var(--border-subtle)', padding: '0 32px', height: 60, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ fontWeight: 800, fontSize: 15, color: 'var(--accent-navy)' }}>IMUpilot</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{ display: 'flex', color: 'var(--accent-navy, #0F172A)' }}>
+              <LogoIcon />
+            </span>
+            <span style={{ fontWeight: 800, fontSize: 16, color: 'var(--accent-navy, #0F172A)' }}>IMUPilot</span>
+          </div>
           <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--text-primary)' }}>{subject.label} — {chapter.name}</div>
           <button onClick={onBack} style={{ background: 'var(--accent-navy)', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 18px', cursor: 'pointer', fontSize: 13, fontWeight: 700, fontFamily: 'inherit' }}>
             Back to Subjects
@@ -370,13 +785,10 @@ function TestEngine({ subject, chapter, onBack }) {
       {/* Header */}
       <div style={{ background: 'var(--bg-elevated)', borderBottom: '1px solid var(--border-subtle)', padding: '0 24px', height: 58, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ width: 34, height: 34, borderRadius: '50%', background: 'var(--accent-navy-subtle)', border: '2px solid var(--accent-navy)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <span style={{ fontSize: 7, fontWeight: 800, color: 'var(--accent-navy)', textAlign: 'center', lineHeight: 1.2 }}>IMU<br/>PILOT</span>
-          </div>
-          <div>
-            <div style={{ fontWeight: 800, fontSize: 13, color: 'var(--accent-navy)' }}>IMUpilot</div>
-            <div style={{ fontSize: 10, color: 'var(--text-secondary)' }}>{subject.label} · {chapter.name}</div>
-          </div>
+          <span style={{ display: 'flex', color: 'var(--accent-navy, #0F172A)' }}>
+            <LogoIcon />
+          </span>
+          <div style={{ fontWeight: 800, fontSize: 13, color: 'var(--accent-navy)' }}>IMUPilot</div>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -510,9 +922,10 @@ function TestEngine({ subject, chapter, onBack }) {
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 export default function SectionalTestEngine() {
-  const [view, setView] = useState('subjects'); // subjects | chapters | test
+  const [view, setView] = useState('subjects'); // subjects | chapters | topics | test
   const [selectedSubject, setSelectedSubject] = useState(null);
   const [selectedChapter, setSelectedChapter] = useState(null);
+  const [selectedTopic, setSelectedTopic] = useState(null);
 
   if (view === 'subjects') return (
     <SubjectSelect onSelect={sub => { setSelectedSubject(sub); setView('chapters'); }} />
@@ -521,8 +934,21 @@ export default function SectionalTestEngine() {
   if (view === 'chapters') return (
     <ChapterSelect
       subject={selectedSubject}
-      onSelect={ch => { setSelectedChapter(ch); setView('test'); }}
+      onSelect={ch => {
+        setSelectedChapter(ch);
+        setSelectedTopic(null);
+        setView(TOPIC_CURRICULUM[selectedSubject.id] ? 'topics' : 'test');
+      }}
       onBack={() => setView('subjects')}
+    />
+  );
+
+  if (view === 'topics') return (
+    <TopicSelect
+      subject={selectedSubject}
+      chapter={selectedChapter}
+      onSelect={topic => { setSelectedTopic(topic); setView('test'); }}
+      onBack={() => setView('chapters')}
     />
   );
 
@@ -530,7 +956,17 @@ export default function SectionalTestEngine() {
     <TestEngine
       subject={selectedSubject}
       chapter={selectedChapter}
-      onBack={() => { setView('subjects'); setSelectedSubject(null); setSelectedChapter(null); }}
+      topic={selectedTopic}
+      onBack={() => {
+        if (selectedTopic) {
+          setSelectedTopic(null);
+          setView('topics');
+        } else {
+          setView('subjects');
+          setSelectedSubject(null);
+          setSelectedChapter(null);
+        }
+      }}
     />
   );
 }

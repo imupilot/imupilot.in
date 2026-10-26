@@ -73,7 +73,7 @@ export const Cta = () => {
             Practice with purpose. Understand your weaknesses. Improve before the interview.
           </p>
           <Button asChild className="mt-6 rounded-full bg-slate-900 px-6 text-white hover:bg-slate-800">
-            <Link to="/coming-soon">
+            <Link to="/revise">
               Explore DNS Preparation
               <ArrowRight className="ml-2 h-4 w-4" />
             </Link>

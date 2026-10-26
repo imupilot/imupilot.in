@@ -51,13 +51,13 @@ export const Navbar = () => {
 
         <div className="hidden shrink-0 items-center gap-3 lg:flex">
           <Link
-            to="/coming-soon"
+            to="/auth"
             className="px-3 py-2 text-sm font-medium text-slate-700 transition hover:text-slate-950"
           >
             Log in
           </Link>
           <Button asChild className="rounded-full bg-[#0d1527] px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#1a253c] transition-all">
-            <Link to="/coming-soon" className="inline-flex items-center gap-2">
+            <Link to="/auth" className="inline-flex items-center gap-2">
               <span>Get Started</span>
               <ArrowRight className="h-4 w-4" />
             </Link>
@@ -88,14 +88,14 @@ export const Navbar = () => {
                   </a>
                 ))}
                 <Link
-                  to="/coming-soon"
+                  to="/auth"
                   onClick={() => setIsOpen(false)}
                   className={buttonVariants({ variant: "ghost" })}
                 >
                   Log in
                 </Link>
                 <Button asChild className="mt-2 rounded-full bg-slate-900 text-white hover:bg-slate-800">
-                  <Link to="/coming-soon" onClick={() => setIsOpen(false)}>
+                  <Link to="/auth" onClick={() => setIsOpen(false)}>
                     Get Started
                   </Link>
                 </Button>

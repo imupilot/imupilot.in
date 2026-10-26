@@ -1,209 +1,387 @@
-import { useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import {
+  Activity,
+  ArrowDownRight,
+  ArrowRight,
+  Bell,
+  BookOpen,
+  ChevronDown,
+  ClipboardList,
+  Clock3,
+  Target,
+  Trophy,
+} from "lucide-react";
 import IMUpilotSidebar from "../components/IMUpilotSidebar";
+import { supabase } from "../supabaseClient";
 
-const IC = ({ path, size = 18 }) => (
-  <svg width={size} height={size} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-    <path d={path} />
-  </svg>
-);
-
-const ICONS = {
-  analytics: "M4 20V14M9 20V8M14 20V12M19 20V4",
-  mock:      "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2 M9 5a2 2 0 002 2h2a2 2 0 002-2 M9 5a2 2 0 012-2h2a2 2 0 012 2",
-  flashcard: "M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10",
-  fire:      "M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.974 7.974 0 01-2.343 5.657z",
-  check:     "M5 13l4 4L19 7",
+const DAILY_TARGET = 20;
+const SURFACE = {
+  background: "#fff",
+  border: "1px solid #E2E8F0",
+  borderRadius: 18,
 };
 
-const SUBJECTS = [
-  { name: "Physics",     emoji: "⚡", mastery: 53, chapters: "1/3",  topics: 15, pyqs: "150+", color: "#3B82F6" },
-  { name: "Chemistry",   emoji: "🧪", mastery: 0,  chapters: "0/8",  topics: 0,  pyqs: "150+", color: "#10B981" },
-  { name: "Mathematics", emoji: "📐", mastery: 0,  chapters: "0/10", topics: 0,  pyqs: "100+", color: "#F59E0B" },
-  { name: "English",     emoji: "📝", mastery: 0,  chapters: "0/6",  topics: 0,  pyqs: "80+",  color: "#8B5CF6" },
-  { name: "GA / GK",    emoji: "🌍", mastery: 0,  chapters: "0/5",  topics: 0,  pyqs: "50+",  color: "#EF4444" },
-];
+function getGreeting() {
+  const hour = new Date().getHours();
+  if (hour < 12) return "Good morning";
+  if (hour < 18) return "Good afternoon";
+  return "Good evening";
+}
 
-const MOCK_TESTS = [
-  { name: "IMUCET Full Mock #1", questions: 200, time: "3h",  difficulty: "Medium", status: "available" },
-  { name: "IMUCET Full Mock #2", questions: 200, time: "3h",  difficulty: "Hard",   status: "coming" },
-  { name: "Physics Sectional",   questions: 50,  time: "45m", difficulty: "Easy",   status: "available" },
-];
+function readTestHistory(userId) {
+  try {
+    const raw = localStorage.getItem(`imupilot_test_history_${userId}`);
+    if (!raw) return [];
+    const history = JSON.parse(raw);
+    if (!Array.isArray(history)) {
+      console.error("Unable to load your test history: saved history is not a list.");
+      return [];
+    }
+    return history.filter(test => {
+      const valid = test && typeof test === "object"
+        && Number.isFinite(test.correct)
+        && Number.isFinite(test.incorrect)
+        && Number.isFinite(test.score)
+        && Number.isFinite(test.totalQuestions)
+        && test.correct >= 0
+        && test.incorrect >= 0
+        && test.totalQuestions > 0
+        && test.correct + test.incorrect <= test.totalQuestions;
+      if (!valid) console.error("Skipping an invalid saved mock test result.", test);
+      return valid;
+    });
+  } catch (error) {
+    console.error("Unable to load your test history.", error);
+    return [];
+  }
+}
 
-function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-  useEffect(() => {
-    const handler = () => setIsMobile(window.innerWidth < 768);
-    window.addEventListener("resize", handler);
-    return () => window.removeEventListener("resize", handler);
-  }, []);
-  return isMobile;
+function formatTestDate(value) {
+  if (!value) return "Recent";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Recent";
+  const now = new Date();
+  if (date.toDateString() === now.toDateString()) return "Today";
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+  if (date.toDateString() === yesterday.toDateString()) return "Yesterday";
+  return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}
+
+function Card({ children, style = {} }) {
+  return <section style={{ ...SURFACE, padding: 22, ...style }}>{children}</section>;
+}
+
+function SectionHeading({ eyebrow, title, action }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, marginBottom: 16 }}>
+      <div>
+        {eyebrow && <div style={{ color: "#64748B", fontSize: 10, fontWeight: 700, letterSpacing: "0.14em", marginBottom: 5 }}>{eyebrow}</div>}
+        <h2 style={{ margin: 0, color: "#0F172A", fontSize: 17, fontWeight: 650, letterSpacing: "-0.025em" }}>{title}</h2>
+      </div>
+      {action}
+    </div>
+  );
 }
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const isMobile = useIsMobile();
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [history, setHistory] = useState([]);
+  const [user, setUser] = useState(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
 
-  const user = JSON.parse(localStorage.getItem('user') || 'null');
-  useEffect(() => { if (!user) navigate('/auth'); }, []);
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    let storedUser = null;
+    try {
+      storedUser = JSON.parse(localStorage.getItem("user") || "null");
+    } catch (error) {
+      console.error("Unable to read the signed-in user.", error);
+    }
+
+    if (!storedUser?.id) {
+      navigate("/auth", { replace: true });
+      return;
+    }
+
+    setUser(storedUser);
+    setHistory(readTestHistory(storedUser.id));
+  }, [navigate]);
+
+  const metrics = useMemo(() => {
+    const attempts = history.reduce((sum, test) => sum + (Number(test.correct) || 0) + (Number(test.incorrect) || 0), 0);
+    const correct = history.reduce((sum, test) => sum + (Number(test.correct) || 0), 0);
+    const scoreTotal = history.reduce((sum, test) => sum + (Number(test.score) || 0), 0);
+    const questionTotal = history.reduce((sum, test) => sum + (Number(test.totalQuestions) || 0), 0);
+    const todayQuestions = history
+      .filter(test => test.completedAt && new Date(test.completedAt).toDateString() === new Date().toDateString())
+      .reduce((sum, test) => sum + (Number(test.correct) || 0) + (Number(test.incorrect) || 0), 0);
+
+    return {
+      testsTaken: history.length,
+      averageScore: questionTotal ? Math.round((scoreTotal / questionTotal) * 200) : null,
+      accuracy: attempts ? Math.round((correct / attempts) * 100) : null,
+      dailyProgress: Math.min(100, Math.round((todayQuestions / DAILY_TARGET) * 100)),
+      todayQuestions,
+    };
+  }, [history]);
+
+  const latestTest = history[0];
+  const subjectRows = useMemo(() => {
+    if (!latestTest?.subjectBreakdown || typeof latestTest.subjectBreakdown !== "object") return [];
+    const order = ["Physics", "Chemistry", "Mathematics", "English", "General Aptitude"];
+    return order
+      .filter(name => latestTest.subjectBreakdown[name] && typeof latestTest.subjectBreakdown[name] === "object")
+      .map(name => ({
+        name,
+        accuracy: Number(latestTest.subjectBreakdown[name].accuracy) || 0,
+        correct: Number(latestTest.subjectBreakdown[name].correct) || 0,
+        total: Number(latestTest.subjectBreakdown[name].total) || 0,
+      }));
+  }, [latestTest]);
+
+  const weakTopics = useMemo(() => {
+    if (!Array.isArray(latestTest?.questions) || !latestTest?.answers || typeof latestTest.answers !== "object") return [];
+    const topics = new Map();
+    latestTest.questions.forEach(question => {
+      if (!question || typeof question !== "object" || question.id === undefined) return;
+      const selected = latestTest.answers[question.id];
+      if (selected === undefined || selected === null) return;
+      const topic = question.topic_tag || question.subject || "Other";
+      const current = topics.get(topic) || { name: topic, correct: 0, attempted: 0 };
+      current.attempted += 1;
+      if (selected === question.correctAnswer) current.correct += 1;
+      topics.set(topic, current);
+    });
+    return [...topics.values()]
+      .filter(topic => topic.attempted > 0)
+      .map(topic => ({ ...topic, accuracy: Math.round((topic.correct / topic.attempted) * 100) }))
+      .filter(topic => topic.accuracy < 70)
+      .sort((a, b) => a.accuracy - b.accuracy)
+      .slice(0, 4);
+  }, [latestTest]);
+
+  const trend = history.slice(0, 7).reverse();
+  const userName = user?.name || "Student";
+  const firstName = userName.trim().split(/\s+/)[0] || "Student";
+  const chartValues = trend.map(test => Math.max(0, Math.min(100, Math.round(((Number(test.score) || 0) / (Number(test.totalQuestions) || 1)) * 100))));
+  const chartPoints = chartValues.map((value, index) => {
+    const x = chartValues.length < 2 ? 50 : 10 + (index / (chartValues.length - 1)) * 80;
+    const y = 82 - (value / 100) * 65;
+    return `${x},${y}`;
+  }).join(" ");
+
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+    } catch (err) {
+      console.error("Sign out error:", err);
+    } finally {
+      localStorage.removeItem("user");
+      navigate("/auth", { replace: true });
+    }
+  };
+
   if (!user) return null;
 
-  const userName = user.name || 'Student';
-  const firstName = userName.split(' ')[0];
-
-  const pad = isMobile ? "16px" : "24px 28px";
-  const cols4 = isMobile ? "1fr 1fr" : "repeat(4,1fr)";
-  const cols2 = isMobile ? "1fr" : "1fr 300px";
-  const cols3 = isMobile ? "1fr" : "repeat(3,1fr)";
-  const colsSubjects = isMobile ? "1fr 1fr" : "1fr 1fr";
+  const stats = [
+    { label: "Tests", value: metrics.testsTaken, caption: "Completed tests", icon: ClipboardList },
+    { label: "Avg Score", value: metrics.averageScore === null ? "—" : `${metrics.averageScore}/200`, caption: metrics.averageScore === null ? "No scores yet" : "Across completed tests", icon: Trophy },
+    { label: "Accuracy", value: metrics.accuracy === null ? "—" : `${metrics.accuracy}%`, caption: metrics.accuracy === null ? "No answers yet" : "Correct answers", icon: Target },
+    { label: "Progress", value: `${metrics.dailyProgress}%`, caption: `${Math.min(metrics.todayQuestions, DAILY_TARGET)}/${DAILY_TARGET} questions today`, icon: Activity },
+  ];
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh", fontFamily: "'DM Sans','Segoe UI',sans-serif", background: "var(--bg-primary)" }}>
-      <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
-
+    <div style={{ display: "flex", minHeight: "100vh", background: "#F8FAFC", color: "#0F172A", fontFamily: "Inter, ui-sans-serif, system-ui, sans-serif" }}>
       <IMUpilotSidebar />
-
-      <main style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", minWidth: 0 }}>
-
-        {/* Topbar */}
-        <div style={{ background: "var(--bg-elevated)", borderBottom: "1px solid var(--border-subtle)", padding: isMobile ? "0 16px" : "0 28px", height: 58, display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0, position: "sticky", top: 0, zIndex: 10 }}>
+      <main style={{ minWidth: 0, flex: 1, overflowY: "auto" }}>
+        <header style={{ height: 72, padding: isMobile ? "0 16px" : "0 32px", display: "flex", alignItems: "center", justifyContent: "space-between", background: "#fff", borderBottom: "1px solid #E2E8F0", position: "sticky", top: isMobile ? 56 : 0, zIndex: 20 }}>
           <div>
-            <div style={{ fontWeight: 700, fontSize: isMobile ? 16 : 19, letterSpacing: "-0.02em", color: "var(--text-primary)" }}>Dashboard</div>
-            <div style={{ fontSize: 11, color: "var(--text-secondary)" }}>Welcome back, {firstName}!</div>
+            <div style={{ fontSize: 13, color: "#64748B" }}>IMUPilot / Dashboard</div>
+            <div style={{ marginTop: 2, fontSize: 12, color: "#94A3B8" }}>Your preparation overview</div>
           </div>
-        </div>
-
-        <div style={{ padding: pad, flex: 1 }}>
-
-          {/* STATS */}
-          <div style={{ display: "grid", gridTemplateColumns: cols4, gap: 12, marginBottom: 22 }}>
-            {[
-              { label: "Tests Taken", value: "0",    sub: "Start your first mock", icon: "mock",      accent: "#1B3A6B", bgClass: "var(--accent-navy-subtle)", colorClass: "var(--accent-navy)" },
-              { label: "Avg Score",   value: "—",    sub: "No data yet",           icon: "analytics", accent: "#3B82F6", bgClass: "var(--accent-info-subtle)", colorClass: "var(--accent-info)" },
-              { label: "Day Streak",  value: "0",    sub: "Login daily",           icon: "fire",      accent: "#E8630A", bgClass: "var(--accent-primary-subtle)", colorClass: "var(--accent-primary)" },
-              { label: "Topics Done", value: "0/45", sub: "Across all subjects",   icon: "check",     accent: "#10B981", bgClass: "var(--accent-success-subtle)", colorClass: "var(--accent-success)" },
-            ].map(s => (
-              <div key={s.label} style={{ background: "var(--bg-elevated)", border: "1px solid var(--border-subtle)", borderRadius: 14, padding: "16px" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                  <div style={{ fontSize: 10, fontWeight: 600, color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "0.06em" }}>{s.label}</div>
-                  <div style={{ width: 28, height: 28, borderRadius: 7, background: s.bgClass, display: "flex", alignItems: "center", justifyContent: "center", color: s.colorClass }}>
-                    <IC path={ICONS[s.icon]} size={13} />
-                  </div>
-                </div>
-                <div style={{ fontSize: 24, fontWeight: 700, color: "var(--text-primary)", marginBottom: 2 }}>{s.value}</div>
-                <div style={{ fontSize: 10, color: "var(--text-secondary)" }}>{s.sub}</div>
-              </div>
-            ))}
-          </div>
-
-          {/* LEARNING HUB + RIGHT PANEL */}
-          <div style={{ display: "grid", gridTemplateColumns: cols2, gap: 18, marginBottom: 22 }}>
-            <div>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-                <div style={{ fontWeight: 700, fontSize: 14, color: "var(--text-primary)" }}>Learning Hub</div>
-                <button onClick={() => navigate("/learn")} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 12, color: "var(--accent-primary)", fontWeight: 600, fontFamily: "inherit" }}>View all →</button>
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: colsSubjects, gap: 10 }}>
-                {SUBJECTS.map(s => (
-                  <div key={s.name} onClick={() => navigate("/learn")}
-                    style={{ background: "var(--bg-elevated)", border: "1px solid var(--border-subtle)", borderRadius: 14, padding: "16px", cursor: "pointer" }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
-                      <span style={{ fontSize: 20 }}>{s.emoji}</span>
-                      <div style={{ textAlign: "right" }}>
-                        <div style={{ fontSize: 18, fontWeight: 700, color: s.color }}>{s.mastery}%</div>
-                        <div style={{ fontSize: 9, fontWeight: 700, color: "var(--text-secondary)", textTransform: "uppercase" }}>Mastery</div>
-                      </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, position: "relative" }}>
+            <button type="button" aria-label="Notifications" onClick={() => { setNotificationsOpen(value => !value); setMenuOpen(false); }} style={{ width: 38, height: 38, display: "grid", placeItems: "center", borderRadius: 999, border: "1px solid #E2E8F0", color: "#475569", background: "#fff", cursor: "pointer" }}>
+              <Bell size={17} />
+            </button>
+            <button type="button" aria-expanded={menuOpen} onClick={() => { setMenuOpen(value => !value); setNotificationsOpen(false); }} style={{ display: "flex", alignItems: "center", gap: 9, padding: "4px 10px 4px 5px", border: "1px solid #E2E8F0", borderRadius: 999, color: "#0F172A", background: "#fff", cursor: "pointer", font: "inherit" }}>
+              <span style={{ width: 30, height: 30, display: "grid", placeItems: "center", borderRadius: 999, background: "#0F172A", color: "#fff", fontSize: 12, fontWeight: 700 }}>{firstName[0].toUpperCase()}</span>
+              {!isMobile && <span style={{ fontSize: 13, fontWeight: 600 }}>{firstName}</span>}
+              <ChevronDown size={14} color="#64748B" />
+            </button>
+            {(menuOpen || notificationsOpen) && (
+              <div style={{ position: "absolute", top: 48, right: 0, zIndex: 30, width: 220, padding: 14, border: "1px solid #E2E8F0", borderRadius: 14, background: "#fff", boxShadow: "0 16px 40px rgba(15,23,42,.12)" }}>
+                {notificationsOpen ? (
+                  <>
+                    <div style={{ fontSize: 13, fontWeight: 650, color: "#0F172A" }}>Notifications</div>
+                    <div style={{ padding: "18px 0 6px", color: "#64748B", fontSize: 12 }}>You’re all caught up.</div>
+                  </>
+                ) : (
+                  <>
+                    <div style={{ padding: "2px 4px 12px", borderBottom: "1px solid #E2E8F0" }}>
+                      <div style={{ fontSize: 13, fontWeight: 650 }}>{userName}</div>
+                      <div style={{ marginTop: 3, color: "#64748B", fontSize: 11 }}>{user.email || user.phone || ""}</div>
                     </div>
-                    <div style={{ fontWeight: 700, fontSize: 13, color: "var(--text-primary)", marginBottom: 2 }}>{s.name}</div>
-                    <div style={{ fontSize: 10, color: "var(--text-secondary)", marginBottom: 8 }}>{s.chapters} Chapters</div>
-                    <div style={{ height: 3, background: "var(--bg-tertiary)", borderRadius: 999, marginBottom: 10 }}>
-                      <div style={{ width: `${s.mastery}%`, height: "100%", background: s.color, borderRadius: 999 }} />
-                    </div>
-                    <button style={{ width: "100%", padding: "7px", borderRadius: 8, background: "var(--accent-navy)", color: "#fff", border: "none", cursor: "pointer", fontSize: 11, fontWeight: 600, fontFamily: "inherit" }}>
-                      Continue Learning
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Right panel — hidden on mobile to save space, shown as separate cards */}
-            {!isMobile && (
-              <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-                <div style={{ background: "var(--bg-elevated)", border: "1px solid var(--border-subtle)", borderRadius: 14, padding: "18px" }}>
-                  <div style={{ fontWeight: 700, fontSize: 12, color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 14 }}>Learning Goals</div>
-                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-                    <div style={{ fontSize: 12, fontWeight: 500, color: "var(--text-tertiary)" }}>Daily Progress</div>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-primary)" }}>0/5 Topics</div>
-                  </div>
-                  <div style={{ height: 6, background: "var(--bg-tertiary)", borderRadius: 999, marginBottom: 14 }}>
-                    <div style={{ width: "0%", height: "100%", background: "var(--accent-primary)", borderRadius: 999 }} />
-                  </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 10, background: "var(--accent-primary-subtle)", borderRadius: 10, padding: "10px 12px" }}>
-                    <div style={{ width: 32, height: 32, borderRadius: "50%", background: "var(--accent-primary)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "#fff" }}>
-                      <IC path={ICONS.fire} size={14} />
-                    </div>
-                    <div>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>Welcome, {firstName}!</div>
-                      <div style={{ fontSize: 11, color: "var(--text-secondary)" }}>Start your first session today.</div>
-                    </div>
-                  </div>
-                </div>
-
-                <div style={{ background: "var(--accent-navy)", borderRadius: 14, padding: "18px" }}>
-                  <div style={{ fontWeight: 700, fontSize: 14, color: "#fff", marginBottom: 6 }}>Ready to Revise?</div>
-                  <div style={{ fontSize: 12, color: "rgba(255,255,255,0.7)", marginBottom: 14 }}>Start with your flashcard decks today.</div>
-                  <button onClick={() => navigate("/revise")} style={{ width: "100%", padding: "10px", borderRadius: 8, background: "var(--accent-primary)", color: "#fff", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, fontFamily: "inherit" }}>
-                    Start Flashcards
-                  </button>
-                </div>
+                    <button type="button" onClick={handleLogout} style={{ width: "100%", marginTop: 10, padding: "8px 4px", textAlign: "left", border: 0, borderRadius: 8, color: "#475569", background: "transparent", font: "inherit", fontSize: 13, cursor: "pointer" }}>Log out</button>
+                  </>
+                )}
               </div>
             )}
           </div>
+        </header>
 
-          {/* On mobile — show quick action cards */}
-          {isMobile && (
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 22 }}>
-              <div onClick={() => navigate("/revise")} style={{ background: "var(--accent-navy)", borderRadius: 14, padding: "16px", cursor: "pointer" }}>
-                <div style={{ fontWeight: 700, fontSize: 13, color: "#fff", marginBottom: 4 }}>Flashcards</div>
-                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.7)" }}>DNS Interview Prep</div>
-              </div>
-              <div onClick={() => window.open("/test", "_blank")} style={{ background: "var(--accent-primary)", borderRadius: 14, padding: "16px", cursor: "pointer" }}>
-                <div style={{ fontWeight: 700, fontSize: 13, color: "#fff", marginBottom: 4 }}>Mock Tests</div>
-                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.7)" }}>IMUCET Practice</div>
-              </div>
-            </div>
-          )}
-
-          {/* MOCK TESTS */}
-          <div style={{ marginBottom: 22 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-              <div style={{ fontWeight: 700, fontSize: 14, color: "var(--text-primary)" }}>Mock Tests</div>
-              <button onClick={() => window.open("/test", "_blank")} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 12, color: "var(--accent-primary)", fontWeight: 600, fontFamily: "inherit" }}>View all →</button>
-            </div>
-            <div style={{ display: "grid", gridTemplateColumns: cols3, gap: 10 }}>
-              {MOCK_TESTS.map(t => (
-                <div key={t.name} style={{ background: "var(--bg-elevated)", border: "1px solid var(--border-subtle)", borderRadius: 14, padding: "16px" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)", lineHeight: 1.3, paddingRight: 8 }}>{t.name}</div>
-                    <span style={{ fontSize: 10, fontWeight: 700, padding: "3px 8px", borderRadius: 999, flexShrink: 0, background: t.status === "available" ? "var(--accent-success-subtle)" : "var(--bg-tertiary)", color: t.status === "available" ? "var(--accent-success)" : "var(--text-secondary)" }}>
-                      {t.status === "available" ? "Available" : "Soon"}
-                    </span>
-                  </div>
-                  <div style={{ display: "flex", gap: 10, marginBottom: 12 }}>
-                    <span style={{ fontSize: 11, color: "var(--text-secondary)" }}><b style={{ color: "var(--text-primary)" }}>{t.questions}Q</b></span>
-                    <span style={{ fontSize: 11, color: "var(--text-secondary)" }}><b style={{ color: "var(--text-primary)" }}>{t.time}</b></span>
-                  </div>
-                  <button disabled={t.status !== "available"}
-                    onClick={() => t.status === "available" && window.open("/test/engine", "_blank")}
-                    style={{ width: "100%", padding: "8px", borderRadius: 8, border: "none", cursor: t.status === "available" ? "pointer" : "default", fontSize: 12, fontWeight: 600, fontFamily: "inherit", background: t.status === "available" ? "var(--accent-navy)" : "var(--bg-tertiary)", color: t.status === "available" ? "#fff" : "var(--text-tertiary)" }}>
-                    {t.status === "available" ? "Start Test →" : "Coming Soon"}
-                  </button>
-                </div>
-              ))}
-            </div>
+        <div style={{ width: "100%", maxWidth: 1480, margin: "0 auto", padding: isMobile ? "26px 16px 92px" : "34px 36px 48px" }}>
+          <div style={{ marginBottom: 26 }}>
+            <div style={{ color: "#0F172A", fontSize: isMobile ? 25 : 31, fontWeight: 650, lineHeight: 1.2, letterSpacing: "-0.045em" }}>{getGreeting()}, {firstName}</div>
+            <div style={{ marginTop: 8, color: "#64748B", fontSize: 14 }}>Here's where your preparation stands.</div>
           </div>
 
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2,minmax(0,1fr))" : "repeat(4,minmax(0,1fr))", gap: 14, marginBottom: 26 }}>
+            {stats.map(({ label, value, caption, icon: Icon }) => (
+              <Card key={label} style={{ padding: isMobile ? 16 : 20 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+                  <div style={{ color: "#64748B", fontSize: 11, fontWeight: 650 }}>{label}</div>
+                  <span style={{ width: 30, height: 30, display: "grid", placeItems: "center", borderRadius: 9, color: "#334155", background: "#F1F5F9" }}><Icon size={15} /></span>
+                </div>
+                <div style={{ marginTop: 16, color: "#0F172A", fontSize: isMobile ? 22 : 27, fontWeight: 700, letterSpacing: "-0.04em" }}>{value}</div>
+                <div style={{ marginTop: 4, color: "#64748B", fontSize: 11 }}>{caption}</div>
+              </Card>
+            ))}
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "minmax(0,1.7fr) minmax(250px,.8fr)", gap: 16, marginBottom: 16 }}>
+            <Card>
+              <SectionHeading eyebrow="PERFORMANCE" title="Score progression" action={<button type="button" onClick={() => navigate("/analytics")} style={{ padding: 0, border: 0, color: "#475569", background: "none", font: "inherit", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>View analytics <ArrowRight size={13} style={{ verticalAlign: "middle" }} /></button>} />
+              {trend.length ? (
+                <>
+                  <div style={{ height: 182, position: "relative", overflow: "hidden" }}>
+                    <div style={{ position: "absolute", inset: "8px 0 24px", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+                      {[0, 1, 2, 3].map(line => <div key={line} style={{ borderTop: "1px dashed #E2E8F0" }} />)}
+                    </div>
+                    <svg viewBox="0 0 100 100" preserveAspectRatio="none" style={{ position: "absolute", inset: "8px 0 24px", width: "100%", height: "calc(100% - 32px)", overflow: "visible" }} aria-label="Score progression chart">
+                      {chartValues.length > 1 && <polyline points={chartPoints} fill="none" stroke="#0F172A" strokeWidth="1.8" vectorEffect="non-scaling-stroke" />}
+                      {chartValues.map((value, index) => {
+                        const x = chartValues.length < 2 ? 50 : 10 + (index / (chartValues.length - 1)) * 80;
+                        const y = 82 - (value / 100) * 65;
+                        return <circle key={`${trend[index]?.name}-${index}`} cx={x} cy={y} r="2.2" fill="#fff" stroke="#0F172A" strokeWidth="1.5" vectorEffect="non-scaling-stroke" />;
+                      })}
+                    </svg>
+                    <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, display: "flex", justifyContent: "space-between", gap: 8 }}>
+                      {trend.map((test, index) => <span key={`${test.completedAt}-${index}`} style={{ flex: 1, textAlign: "center", color: "#94A3B8", fontSize: 10 }}>{test.name || `Test ${index + 1}`}</span>)}
+                    </div>
+                  </div>
+                  <div style={{ display: "flex", justifyContent: "space-between", borderTop: "1px solid #E2E8F0", paddingTop: 14, color: "#64748B", fontSize: 12 }}>
+                    <span>Latest score</span>
+                    <strong style={{ color: "#0F172A" }}>{latestTest.score}/{latestTest.totalQuestions}</strong>
+                  </div>
+                </>
+              ) : (
+                <div style={{ minHeight: 176, display: "grid", placeItems: "center", textAlign: "center", color: "#64748B" }}>
+                  <div><Activity size={25} color="#94A3B8" style={{ margin: "0 auto 10px" }} /><div style={{ fontSize: 13, fontWeight: 600, color: "#334155" }}>Your score trend will appear here</div><div style={{ marginTop: 5, fontSize: 12 }}>Complete a mock test to start tracking progress.</div></div>
+                </div>
+              )}
+            </Card>
+
+            <Card style={{ display: "flex", flexDirection: "column" }}>
+              <SectionHeading eyebrow="TODAY" title="Daily target" />
+              <div style={{ padding: "8px 0 18px", display: "flex", alignItems: "center", gap: 14 }}>
+                <div style={{ width: 54, height: 54, flexShrink: 0, display: "grid", placeItems: "center", borderRadius: 16, color: "#0F172A", background: "#F1F5F9" }}><Target size={24} /></div>
+                <div>
+                  <div style={{ color: "#0F172A", fontSize: 19, fontWeight: 700 }}>{DAILY_TARGET} Questions</div>
+                  <div style={{ marginTop: 4, color: "#64748B", fontSize: 12 }}>{metrics.todayQuestions} completed today</div>
+                </div>
+              </div>
+              <div style={{ height: 7, marginBottom: 18, overflow: "hidden", borderRadius: 999, background: "#F1F5F9" }}>
+                <div style={{ width: `${metrics.dailyProgress}%`, height: "100%", borderRadius: 999, background: "#0F172A", transition: "width 250ms ease" }} />
+              </div>
+              <button type="button" onClick={() => navigate("/test/sectional")} style={{ display: "flex", width: "100%", marginTop: "auto", alignItems: "center", justifyContent: "space-between", padding: "12px 14px", border: 0, borderRadius: 12, color: "#fff", background: "#0F172A", font: "inherit", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+                Continue practicing <ArrowRight size={16} />
+              </button>
+            </Card>
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "minmax(0,1.2fr) minmax(270px,.9fr)", gap: 16, marginBottom: 26 }}>
+            <Card>
+              <SectionHeading eyebrow="SUBJECTS" title="Subject performance" action={<BookOpen size={17} color="#64748B" />} />
+              {subjectRows.length ? (
+                <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                  {subjectRows.map(subject => (
+                    <div key={subject.name}>
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 7 }}>
+                        <span style={{ color: "#334155", fontSize: 13, fontWeight: 550 }}>{subject.name}</span>
+                        <span style={{ color: "#0F172A", fontSize: 13, fontWeight: 650 }}>{subject.accuracy}%</span>
+                      </div>
+                      <div style={{ height: 6, overflow: "hidden", borderRadius: 999, background: "#F1F5F9" }}>
+                        <div style={{ width: `${subject.accuracy}%`, height: "100%", borderRadius: 999, background: "#0F172A" }} />
+                      </div>
+                      <div style={{ marginTop: 4, color: "#94A3B8", fontSize: 10 }}>{subject.correct}/{subject.total} correct on latest test</div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div style={{ padding: "24px 0", color: "#64748B", fontSize: 13 }}>Complete a test to see your subject breakdown.</div>
+              )}
+            </Card>
+
+            <Card>
+              <SectionHeading eyebrow="FOCUS NEXT" title="Weak areas" action={<ArrowDownRight size={17} color="#64748B" />} />
+              {weakTopics.length ? (
+                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                  {weakTopics.map(topic => (
+                    <div key={topic.name} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "11px 12px", border: "1px solid #E2E8F0", borderRadius: 12, background: "#fff" }}>
+                      <div style={{ minWidth: 0 }}>
+                        <div style={{ overflow: "hidden", color: "#334155", fontSize: 12, fontWeight: 600, textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{topic.name}</div>
+                        <div style={{ marginTop: 3, color: "#94A3B8", fontSize: 10 }}>{topic.correct}/{topic.attempted} correct</div>
+                      </div>
+                      <span style={{ flexShrink: 0, color: "#0F172A", fontSize: 13, fontWeight: 700 }}>{topic.accuracy}%</span>
+                    </div>
+                  ))}
+                  <button type="button" onClick={() => navigate("/revise")} style={{ marginTop: 4, padding: "10px 12px", border: "1px solid #E2E8F0", borderRadius: 999, color: "#334155", background: "#fff", font: "inherit", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>Review weak areas <ArrowRight size={13} style={{ verticalAlign: "middle" }} /></button>
+                </div>
+              ) : (
+                <div style={{ padding: "24px 0", color: "#64748B", fontSize: 13 }}>
+                  {latestTest ? "No weak topics found from your latest test." : "Take a mock test to identify topics to focus on."}
+                </div>
+              )}
+            </Card>
+          </div>
+
+          <Card style={{ padding: isMobile ? 16 : 22 }}>
+            <SectionHeading eyebrow="ACTIVITY" title="Recent tests" action={<Clock3 size={17} color="#64748B" />} />
+            {history.length ? (
+              <div>
+                {history.slice(0, 5).map((test, index) => (
+                  <button key={`${test.completedAt}-${index}`} type="button" onClick={() => { localStorage.setItem("imupilot_last_result", JSON.stringify(test)); navigate("/test/result"); }} style={{ display: "grid", gridTemplateColumns: isMobile ? "minmax(0,1fr) auto" : "minmax(0,2fr) 1fr 1fr auto", alignItems: "center", gap: 12, width: "100%", padding: "14px 4px", border: 0, borderTop: "1px solid #F1F5F9", color: "#334155", background: "transparent", textAlign: "left", font: "inherit", cursor: "pointer" }}>
+                    <span style={{ minWidth: 0 }}>
+                      <span style={{ display: "block", overflow: "hidden", color: "#0F172A", fontSize: 13, fontWeight: 600, textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{test.name || `Mock #${String(history.length - index).padStart(2, "0")}`}</span>
+                      {isMobile && <span style={{ display: "block", marginTop: 3, color: "#94A3B8", fontSize: 11 }}>{formatTestDate(test.completedAt)} · {test.score}/{test.totalQuestions}</span>}
+                    </span>
+                    {!isMobile && <span style={{ color: "#64748B", fontSize: 12 }}>{formatTestDate(test.completedAt)}</span>}
+                    <span style={{ color: "#334155", fontSize: 12, fontWeight: 600 }}>{test.score}/{test.totalQuestions}</span>
+                    <span style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 8, color: "#0F172A", fontSize: 12, fontWeight: 700 }}>
+                      {Number(test.accuracy) || 0}% <ArrowRight size={14} color="#94A3B8" />
+                    </span>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, padding: "18px 0 4px", borderTop: "1px solid #F1F5F9" }}>
+                <div>
+                  <div style={{ color: "#334155", fontSize: 13, fontWeight: 600 }}>No completed tests yet</div>
+                  <div style={{ marginTop: 4, color: "#64748B", fontSize: 12 }}>Your test history will show here when you finish a mock.</div>
+                </div>
+                <button type="button" onClick={() => navigate("/test")} style={{ flexShrink: 0, padding: "10px 14px", border: 0, borderRadius: 999, color: "#fff", background: "#0F172A", font: "inherit", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>Browse tests</button>
+              </div>
+            )}
+          </Card>
         </div>
       </main>
     </div>

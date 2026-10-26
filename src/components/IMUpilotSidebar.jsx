@@ -1,7 +1,7 @@
 import { useNavigate, useLocation } from "react-router-dom";
-import { Anchor, Sun, Moon } from "lucide-react";
 import { useState, useEffect } from "react";
-import { useTheme } from "../context/ThemeContext";
+import { LogoIcon } from "./Icons";
+import { supabase } from "../supabaseClient";
 
 const IC = ({ path, size = 16 }) => (
   <svg width={size} height={size} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
@@ -27,28 +27,31 @@ const ICONS = {
 };
 
 const NAV = [
-  { section: "DASHBOARD", items: [
+  { section: "OVERVIEW", items: [
     { id: "dashboard", label: "Dashboard",       icon: "dashboard", path: "/dashboard" },
     { id: "analytics", label: "Analytics",       icon: "analytics", path: "/analytics" },
-    { id: "flashcard", label: "Flashcards",      icon: "flashcard", path: "/revise" },
+    { id: "learn",     label: "Learn",           icon: "notes",     path: "/learn" },
     { id: "planner",   label: "Planner",         icon: "planner",   path: "/planner" },
-    { id: "purchases", label: "Purchases",       icon: "purchases", path: null, soon: true },
   ]},
   { section: "PRACTICE", items: [
-    { id: "notes",     label: "Topic Notes",     icon: "notes",     path: "/learn" },
-    { id: "mock",      label: "Mock Tests",      icon: "mock",      path: "/test", newTab: true },
-    { id: "pyq",       label: "Past Papers",     icon: "pyq",       path: null, soon: true },
-    { id: "sectional", label: "Sectional Tests", icon: "sectional", path: "/test/sectional", newTab: true },
+    { id: "mock",      label: "Mock Tests",      icon: "mock",      path: "/test" },
+    { id: "pyq",       label: "PYQs",            icon: "pyq",       path: null, soon: true },
+    { id: "sectional", label: "Sectionals",      icon: "sectional", path: "/test/sectional" },
+    { id: "flashcard", label: "Flashcards",      icon: "flashcard", path: "/revise" },
+  ]},
+  { section: "PREPARATION", items: [
+    { id: "dns",       label: "DNS Prep",        icon: "planner",   path: null, soon: true },
+    { id: "predictor", label: "College Predictor", icon: "analytics", path: null, soon: true },
   ]},
 ];
 
 // Bottom nav items for mobile (most used only)
 const BOTTOM_NAV = [
   { id: "dashboard", label: "Home",      icon: "dashboard", path: "/dashboard" },
-  { id: "flashcard", label: "Flashcards",icon: "flashcard", path: "/revise" },
-  { id: "mock",      label: "Tests",     icon: "mock",      path: "/test", newTab: true },
+  { id: "learn",     label: "Learn",     icon: "notes",     path: "/learn" },
+  { id: "mock",      label: "Tests",     icon: "mock",      path: "/test" },
+  { id: "planner",   label: "Planner",   icon: "planner",   path: "/planner" },
   { id: "analytics", label: "Analytics", icon: "analytics", path: "/analytics" },
-  { id: "notes",     label: "Notes",     icon: "notes",     path: "/learn" },
 ];
 
 function useIsMobile() {
@@ -66,7 +69,6 @@ export default function IMUpilotSidebar() {
   const location = useLocation();
   const isMobile = useIsMobile();
   const [menuOpen, setMenuOpen] = useState(false);
-  const { theme, toggleTheme } = useTheme();
 
   const isActive = (path) => path && location.pathname === path;
 
@@ -85,22 +87,29 @@ export default function IMUpilotSidebar() {
     catch { return {}; }
   })();
 
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+    } catch (err) {
+      console.error("Sign out error:", err);
+    } finally {
+      localStorage.removeItem("user");
+      setMenuOpen(false);
+      navigate("/auth", { replace: true });
+    }
+  };
+
   // ── MOBILE ────────────────────────────────────────────────────────────────
   if (isMobile) {
     return (
       <>
         {/* Mobile top bar */}
-        <div style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 100, background: "var(--bg-elevated)", borderBottom: "1px solid var(--border-subtle)", height: 52, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 16px" }}>
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 100, background: "#fff", borderBottom: "1px solid #E2E8F0", height: 56, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 16px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }} onClick={() => navigate("/dashboard")}>
-            <div style={{ width: 32, height: 32, background: "var(--accent-navy)", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", color: "#fff" }}>
-              <Anchor size={16} strokeWidth={2.5} />
-            </div>
-            <div style={{ fontWeight: 700, fontSize: 15, color: "var(--text-primary)" }}>IMUpilot</div>
+            <span style={{ display: "flex", color: "#0F172A" }}><LogoIcon /></span>
+            <div style={{ fontWeight: 700, fontSize: 18, letterSpacing: "-0.03em", color: "#0F172A" }}>IMUPilot</div>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <button onClick={toggleTheme} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-secondary)", padding: 6 }}>
-              {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
-            </button>
             <button onClick={() => setMenuOpen(!menuOpen)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-secondary)", padding: 6, borderRadius: 8 }}>
               <IC path={menuOpen ? ICONS.close : ICONS.menu} size={22} />
             </button>
@@ -109,11 +118,11 @@ export default function IMUpilotSidebar() {
 
         {/* Mobile slide-down menu */}
         {menuOpen && (
-          <div style={{ position: "fixed", top: 52, left: 0, right: 0, bottom: 0, zIndex: 99, background: "rgba(0,0,0,0.6)" }} onClick={() => setMenuOpen(false)}>
-            <div style={{ background: "var(--bg-elevated)", borderBottom: "1px solid var(--border-subtle)", padding: "12px 16px 16px", maxHeight: "80vh", overflowY: "auto" }} onClick={e => e.stopPropagation()}>
+          <div style={{ position: "fixed", top: 56, left: 0, right: 0, bottom: 0, zIndex: 99, background: "rgba(15,23,42,0.35)" }} onClick={() => setMenuOpen(false)}>
+            <div style={{ background: "#fff", borderBottom: "1px solid #E2E8F0", padding: "12px 16px 16px", maxHeight: "80vh", overflowY: "auto" }} onClick={e => e.stopPropagation()}>
               {NAV.map(group => (
                 <div key={group.section} style={{ marginBottom: 16 }}>
-                  <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", color: "var(--text-muted)", padding: "0 4px 6px", textTransform: "uppercase" }}>
+                  <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", color: "#94A3B8", padding: "0 4px 6px", textTransform: "uppercase" }}>
                     {group.section}
                   </div>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
@@ -121,10 +130,10 @@ export default function IMUpilotSidebar() {
                       const active = isActive(item.path);
                       return (
                         <button key={item.id} onClick={() => handleNav(item)}
-                          style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", borderRadius: 10, border: "1px solid", borderColor: active ? "var(--accent-primary)" : "var(--border-subtle)", cursor: item.soon ? "default" : "pointer", fontFamily: "inherit", fontSize: 13, fontWeight: active ? 600 : 500, background: active ? "var(--accent-primary-subtle)" : "var(--bg-primary)", color: active ? "var(--accent-primary)" : item.soon ? "var(--text-muted)" : "var(--text-secondary)", textAlign: "left", opacity: item.soon ? 0.6 : 1 }}>
+                          style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", borderRadius: 12, border: "1px solid", borderColor: active ? "#0F172A" : "#E2E8F0", cursor: item.soon ? "default" : "pointer", fontFamily: "inherit", fontSize: 13, fontWeight: active ? 600 : 500, background: active ? "#0F172A" : "#fff", color: active ? "#fff" : item.soon ? "#CBD5E1" : "#475569", textAlign: "left", opacity: item.soon ? 0.65 : 1 }}>
                           <IC path={ICONS[item.icon]} size={15} />
                           <span style={{ flex: 1 }}>{item.label}</span>
-                          {item.soon && <span style={{ fontSize: 8, fontWeight: 700, background: "var(--surface-3)", color: "var(--text-tertiary)", padding: "2px 5px", borderRadius: 999 }}>SOON</span>}
+                          {item.soon && <span style={{ fontSize: 8, fontWeight: 700, background: "#F1F5F9", color: "#94A3B8", padding: "2px 5px", borderRadius: 999 }}>SOON</span>}
                         </button>
                       );
                     })}
@@ -132,17 +141,17 @@ export default function IMUpilotSidebar() {
                 </div>
               ))}
               {/* User + logout */}
-              <div style={{ borderTop: "1px solid var(--border-subtle)", paddingTop: 12, marginTop: 4, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div style={{ borderTop: "1px solid #E2E8F0", paddingTop: 12, marginTop: 4, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <div style={{ width: 32, height: 32, borderRadius: "50%", background: "var(--accent-navy)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700 }}>
+                  <div style={{ width: 32, height: 32, borderRadius: "50%", background: "#0F172A", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700 }}>
                     {(user.name || 'S')[0].toUpperCase()}
                   </div>
                   <div>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>{user.name || 'Student'}</div>
-                    <div style={{ fontSize: 11, color: "var(--text-tertiary)" }}>{user.phone || ''}</div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: "#0F172A" }}>{user.name || 'Student'}</div>
+                    <div style={{ fontSize: 11, color: "#64748B" }}>{user.phone || ''}</div>
                   </div>
                 </div>
-                <button onClick={() => { navigate("/"); setMenuOpen(false); }}
+                <button onClick={handleLogout}
                   style={{ background: "var(--accent-danger-subtle)", border: "none", borderRadius: 8, padding: "8px 14px", cursor: "pointer", fontSize: 12, fontWeight: 600, color: "var(--accent-danger)", fontFamily: "inherit" }}>
                   Logout
                 </button>
@@ -152,47 +161,42 @@ export default function IMUpilotSidebar() {
         )}
 
         {/* Bottom nav bar */}
-        <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 100, background: "var(--bg-elevated)", borderTop: "1px solid var(--border-subtle)", display: "flex", height: 60 }}>
+        <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 100, background: "#fff", borderTop: "1px solid #E2E8F0", display: "flex", height: 60 }}>
           {BOTTOM_NAV.map(item => {
             const active = isActive(item.path);
             return (
               <button key={item.id} onClick={() => handleNav(item)}
-                style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 3, border: "none", background: "transparent", cursor: "pointer", fontFamily: "inherit", color: active ? "var(--accent-primary)" : "var(--text-tertiary)", transition: "color 0.15s" }}>
+                style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 3, border: "none", background: "transparent", cursor: "pointer", fontFamily: "inherit", color: active ? "#0F172A" : "#64748B", transition: "color 0.15s" }}>
                 <IC path={ICONS[item.icon]} size={20} />
                 <span style={{ fontSize: 9, fontWeight: active ? 700 : 500 }}>{item.label}</span>
-                {active && <div style={{ position: "absolute", bottom: 0, width: 24, height: 2, background: "var(--accent-primary)", borderRadius: 999 }} />}
+                {active && <div style={{ position: "absolute", bottom: 0, width: 24, height: 2, background: "#0F172A", borderRadius: 999 }} />}
               </button>
             );
           })}
         </div>
 
         {/* Spacer so content isn't hidden behind top/bottom bars */}
-        <div style={{ height: 52 }} />
+        <div style={{ height: 56 }} />
       </>
     );
   }
 
   // ── DESKTOP SIDEBAR ───────────────────────────────────────────────────────
   return (
-    <aside style={{ width: 232, flexShrink: 0, height: "100vh", background: "var(--bg-elevated)", borderRight: "1px solid var(--border-subtle)", display: "flex", flexDirection: "column", overflow: "hidden", position: "sticky", top: 0 }}>
+    <aside className="imupilot-sidebar" style={{ width: 232, flexShrink: 0, height: "100vh", background: "#fff", borderRight: "1px solid #E2E8F0", display: "flex", flexDirection: "column", overflow: "hidden", position: "sticky", top: 0 }}>
       {/* Logo */}
-      <div style={{ padding: "18px 20px 14px", borderBottom: "1px solid var(--border-subtle)" }}>
+      <div style={{ padding: "18px 20px 14px", borderBottom: "1px solid #E2E8F0" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }} onClick={() => navigate("/dashboard")}>
-          <div style={{ width: 36, height: 36, background: "var(--accent-navy)", borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", color: "#fff" }}>
-            <Anchor size={18} strokeWidth={2.5} />
-          </div>
-          <div>
-            <div style={{ fontWeight: 700, fontSize: 16, color: "var(--text-primary)", letterSpacing: "-0.02em" }}>IMUpilot</div>
-            <div style={{ fontSize: 10, color: "var(--text-tertiary)", fontWeight: 500 }}>IMUCET Prep</div>
-          </div>
+          <span style={{ display: "flex", color: "#0F172A" }}><LogoIcon /></span>
+          <div style={{ fontWeight: 700, fontSize: 18, color: "#0F172A", letterSpacing: "-0.03em" }}>IMUPilot</div>
         </div>
       </div>
 
       {/* Nav */}
-      <nav style={{ flex: 1, overflowY: "auto", padding: "14px 12px" }}>
+      <nav className="imupilot-sidebar-nav" style={{ flex: 1, minHeight: 0, overflowY: "auto", padding: "14px 12px" }}>
         {NAV.map(group => (
           <div key={group.section} style={{ marginBottom: 22 }}>
-            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", color: "var(--text-muted)", padding: "0 8px 7px", textTransform: "uppercase" }}>
+            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", color: "#94A3B8", padding: "0 8px 7px", textTransform: "uppercase" }}>
               {group.section}
             </div>
             {group.items.map(item => {
@@ -200,13 +204,13 @@ export default function IMUpilotSidebar() {
               return (
                 <button key={item.id} onClick={() => handleNav(item)}
                   title={item.soon ? "Coming soon" : ""}
-                  style={{ display: "flex", alignItems: "center", gap: 10, width: "100%", padding: "8px 10px", borderRadius: 9, border: "none", cursor: item.soon ? "default" : "pointer", fontFamily: "inherit", fontSize: 13, fontWeight: active ? 600 : 500, background: active ? "var(--accent-primary-subtle)" : "transparent", color: active ? "var(--accent-primary)" : item.soon ? "var(--text-muted)" : "var(--text-secondary)", transition: "all 0.15s", textAlign: "left", marginBottom: 2, opacity: item.soon ? 0.6 : 1 }}>
-                  <span style={{ flexShrink: 0, color: active ? "var(--accent-primary)" : item.soon ? "var(--text-muted)" : "var(--text-tertiary)" }}>
+                  style={{ display: "flex", alignItems: "center", gap: 10, width: "100%", padding: "9px 10px", borderRadius: 10, border: "none", cursor: item.soon ? "default" : "pointer", fontFamily: "inherit", fontSize: 13, fontWeight: active ? 600 : 500, background: active ? "#0F172A" : "transparent", color: active ? "#fff" : item.soon ? "#CBD5E1" : "#475569", transition: "all 0.15s", textAlign: "left", marginBottom: 3, opacity: item.soon ? 0.65 : 1 }}>
+                  <span style={{ flexShrink: 0, color: active ? "#fff" : item.soon ? "#CBD5E1" : "#64748B" }}>
                     <IC path={ICONS[item.icon]} size={15} />
                   </span>
                   <span style={{ flex: 1 }}>{item.label}</span>
-                  {item.soon && <span style={{ fontSize: 9, fontWeight: 700, background: "var(--surface-3)", color: "var(--text-tertiary)", padding: "2px 6px", borderRadius: 999 }}>SOON</span>}
-                  {active && <div style={{ width: 5, height: 5, borderRadius: "50%", background: "var(--accent-primary)", flexShrink: 0 }} />}
+                  {item.soon && <span style={{ fontSize: 9, fontWeight: 700, background: "#F1F5F9", color: "#94A3B8", padding: "2px 6px", borderRadius: 999 }}>SOON</span>}
+                  {active && <div style={{ width: 5, height: 5, borderRadius: "50%", background: "#fff", flexShrink: 0 }} />}
                 </button>
               );
             })}
@@ -215,31 +219,26 @@ export default function IMUpilotSidebar() {
       </nav>
 
       {/* Bottom */}
-      <div style={{ borderTop: "1px solid var(--border-subtle)", padding: "12px 14px" }}>
-        <button onClick={toggleTheme}
-          style={{ display: "flex", alignItems: "center", gap: 10, width: "100%", padding: "8px 10px", borderRadius: 9, border: "none", cursor: "pointer", background: "transparent", fontFamily: "inherit", fontSize: 13, fontWeight: 500, color: "var(--text-secondary)", marginBottom: 4, textAlign: "left" }}>
-          {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
-          {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
-        </button>
-
+      <div style={{ borderTop: "1px solid #E2E8F0", padding: "12px 14px" }}>
         <button onClick={() => navigate("/contact")}
-          style={{ display: "flex", alignItems: "center", gap: 10, width: "100%", padding: "8px 10px", borderRadius: 9, border: "none", cursor: "pointer", background: "transparent", fontFamily: "inherit", fontSize: 13, fontWeight: 500, color: "var(--text-secondary)", marginBottom: 8, textAlign: "left" }}>
+          style={{ display: "flex", alignItems: "center", gap: 10, width: "100%", padding: "8px 10px", borderRadius: 9, border: "none", cursor: "pointer", background: "transparent", fontFamily: "inherit", fontSize: 13, fontWeight: 500, color: "#475569", marginBottom: 8, textAlign: "left" }}>
           <IC path={ICONS.contact} size={15} />
-          Contact Us
+          Help &amp; Support
         </button>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 10px" }}>
-          <div style={{ width: 32, height: 32, borderRadius: "50%", background: "var(--accent-navy)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700, flexShrink: 0 }}>
-            {(user.name || 'S')[0].toUpperCase()}
+        {user.id && (
+          <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 10px", borderTop: "1px solid #F1F5F9", paddingTop: 10 }}>
+            <div style={{ width: 28, height: 28, borderRadius: "50%", background: "#0F172A", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, flexShrink: 0 }}>
+              {(user.name || 'S')[0].toUpperCase()}
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: "#0F172A", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{user.name || 'Student'}</div>
+            </div>
+            <button onClick={handleLogout}
+              style={{ background: "none", border: "none", cursor: "pointer", color: "#64748B", padding: 4, borderRadius: 6, display: "flex", alignItems: "center" }} title="Log out">
+              <IC path={ICONS.logout} size={15} />
+            </button>
           </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text-primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{user.name || 'Student'}</div>
-            <div style={{ fontSize: 10, color: "var(--text-tertiary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{user.phone || ''}</div>
-          </div>
-          <button onClick={() => navigate("/")}
-            style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-tertiary)", padding: 4, borderRadius: 6, display: "flex" }} title="Log out">
-            <IC path={ICONS.logout} size={14} />
-          </button>
-        </div>
+        )}
       </div>
     </aside>
   );
