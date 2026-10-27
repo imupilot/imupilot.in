@@ -3,6 +3,7 @@ import { BookOpen, ChevronRight, ChevronLeft, Lock, FileText, ExternalLink, Spar
 import IMUpilotSidebar from '../components/IMUpilotSidebar';
 import { supabase } from '../supabaseClient';
 import { isPro } from '../utils/planUtils';
+import UpgradeModal from '../components/UpgradeModal';
 
 const BLUEPRINT_SUBJECTS = [
   { name: 'Mathematics', desc: 'Calculus, Algebra, Vectors, Probability & Coordinate Geometry' },
@@ -20,19 +21,31 @@ export default function Learn() {
   const [profile, setProfile] = useState(null);
   const [lockedMsgId, setLockedMsgId] = useState(null);
   const [bannerNotice, setBannerNotice] = useState(false);
+  const [showUpgrade, setShowUpgrade] = useState(false);
+  const [userId, setUserId] = useState(null);
 
   useEffect(() => {
     async function loadData() {
       try {
         let currentUserId = null;
-        const { data: authData } = await supabase.auth.getSession();
-        if (authData?.session?.user?.id) {
-          currentUserId = authData.session.user.id;
+        const { data: authData } = await supabase.auth.getUser();
+        if (authData?.user?.id) {
+          currentUserId = authData.user.id;
+          setUserId(currentUserId);
         } else {
-          const userStr = localStorage.getItem('user');
-          const user = userStr ? JSON.parse(userStr) : null;
-          if (user?.id) currentUserId = user.id;
-          if (user?.plan) setProfile({ plan: user.plan });
+          const { data: sessionData } = await supabase.auth.getSession();
+          if (sessionData?.session?.user?.id) {
+            currentUserId = sessionData.session.user.id;
+            setUserId(currentUserId);
+          } else {
+            const userStr = localStorage.getItem('user');
+            const user = userStr ? JSON.parse(userStr) : null;
+            if (user?.id) {
+              currentUserId = user.id;
+              setUserId(currentUserId);
+            }
+            if (user?.plan) setProfile({ plan: user.plan });
+          }
         }
 
         if (currentUserId) {
@@ -72,7 +85,7 @@ export default function Learn() {
   const handleChapterClick = (chapter) => {
     const isAccessible = userIsPro || Boolean(chapter.is_free);
     if (!isAccessible) {
-      setLockedMsgId(lockedMsgId === chapter.id ? null : chapter.id);
+      setShowUpgrade(true);
       return;
     }
     setActiveChapter(chapter);
@@ -133,13 +146,8 @@ export default function Learn() {
 
           {!userIsPro && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              {bannerNotice && (
-                <span style={{ fontSize: 12, fontWeight: 600, color: '#92400E', background: '#FEF3C7', padding: '4px 10px', borderRadius: 6, border: '1px solid #FDE68A' }}>
-                  Pro feature — unlock coming soon
-                </span>
-              )}
               <button
-                onClick={() => setBannerNotice((prev) => !prev)}
+                onClick={() => setShowUpgrade(true)}
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
@@ -155,7 +163,7 @@ export default function Learn() {
                   boxShadow: '0 2px 8px rgba(15,23,42,0.1)'
                 }}
               >
-                <Lock size={12} color="#FBBF24" /> Pro
+                🔒 Unlock Pro — ₹999
               </button>
             </div>
           )}
@@ -326,13 +334,13 @@ export default function Learn() {
                                 type="button"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  setLockedMsgId(lockedMsgId === chap.id ? null : chap.id);
+                                  setShowUpgrade(true);
                                 }}
                                 style={{
-                                  background: '#FEF3C7',
-                                  border: '1px solid #FDE68A',
-                                  color: '#92400E',
-                                  padding: '6px 12px',
+                                  background: '#0F172A',
+                                  color: '#FFFFFF',
+                                  border: 'none',
+                                  padding: '6px 14px',
                                   borderRadius: 8,
                                   fontSize: 12,
                                   fontWeight: 700,
@@ -342,7 +350,7 @@ export default function Learn() {
                                   gap: 4
                                 }}
                               >
-                                <Lock size={12} /> Locked 🔒
+                                🔒 Unlock Pro — ₹999
                               </button>
                             ) : (
                               <span style={{ fontSize: 12, fontWeight: 600, color: '#0F172A', display: 'flex', alignItems: 'center', gap: 3 }}>
@@ -367,8 +375,25 @@ export default function Learn() {
                             gap: 8,
                           }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                              <Lock size={13} color="#92400E" />
-                              <span>Pro feature — unlock coming soon</span>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setShowUpgrade(true);
+                                }}
+                                style={{
+                                  background: '#0F172A',
+                                  color: '#FFFFFF',
+                                  border: 'none',
+                                  borderRadius: 6,
+                                  padding: '5px 12px',
+                                  fontSize: 12,
+                                  fontWeight: 700,
+                                  cursor: 'pointer'
+                                }}
+                              >
+                                🔒 Unlock Pro — ₹999
+                              </button>
                             </div>
                             <button
                               type="button"
@@ -394,7 +419,7 @@ export default function Learn() {
               {/* Pro Promotion Banner for Free Users */}
               {!userIsPro && (
                 <div
-                  onClick={() => setBannerNotice((prev) => !prev)}
+                  onClick={() => setShowUpgrade(true)}
                   style={{
                     background: '#0F172A',
                     color: '#FFFFFF',
@@ -421,9 +446,28 @@ export default function Learn() {
                       </div>
                     </div>
                   </div>
-                  <span style={{ fontSize: 12, fontWeight: 700, color: '#FBBF24', display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
-                    {bannerNotice ? "Coming Soon" : "Unlock Coming Soon"} <ChevronRight size={15} />
-                  </span>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowUpgrade(true);
+                    }}
+                    style={{
+                      background: '#FBBF24',
+                      color: '#0F172A',
+                      border: 'none',
+                      borderRadius: 8,
+                      padding: '8px 14px',
+                      fontSize: 12,
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 4,
+                      flexShrink: 0
+                    }}
+                  >
+                    🔒 Unlock Pro — ₹999
+                  </button>
                 </div>
               )}
 
@@ -514,6 +558,7 @@ export default function Learn() {
           )}
         </div>
       </main>
+      {showUpgrade && <UpgradeModal onClose={() => setShowUpgrade(false)} userId={userId} />}
     </div>
   );
 }

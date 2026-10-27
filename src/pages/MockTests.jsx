@@ -4,6 +4,7 @@ import { Play, Clock, FileText, BarChart3, ChevronDown, ChevronUp, CheckCircle, 
 import IMUpilotSidebar from '../components/IMUpilotSidebar';
 import { supabase } from '../supabaseClient';
 import { isPro } from '../utils/planUtils';
+import UpgradeModal from '../components/UpgradeModal';
 
 const mockTests = Array.from({ length: 19 }, (_, i) => ({
   id: i + 1,
@@ -20,18 +21,30 @@ export default function MockTests() {
   const [setsData, setSetsData] = useState([]);
   const [profile, setProfile] = useState(null);
   const [lockedMsgId, setLockedMsgId] = useState(null);
+  const [showUpgrade, setShowUpgrade] = useState(false);
+  const [userId, setUserId] = useState(null);
 
   useEffect(() => {
     async function loadPlanAndSets() {
       try {
         let currentUserId = null;
-        const { data: authData } = await supabase.auth.getSession();
-        if (authData?.session?.user?.id) {
-          currentUserId = authData.session.user.id;
+        const { data: authData } = await supabase.auth.getUser();
+        if (authData?.user?.id) {
+          currentUserId = authData.user.id;
+          setUserId(currentUserId);
         } else {
-          const userStr = localStorage.getItem('user');
-          const user = userStr ? JSON.parse(userStr) : null;
-          if (user?.id) currentUserId = user.id;
+          const { data: sessionData } = await supabase.auth.getSession();
+          if (sessionData?.session?.user?.id) {
+            currentUserId = sessionData.session.user.id;
+            setUserId(currentUserId);
+          } else {
+            const userStr = localStorage.getItem('user');
+            const user = userStr ? JSON.parse(userStr) : null;
+            if (user?.id) {
+              currentUserId = user.id;
+              setUserId(currentUserId);
+            }
+          }
         }
 
         if (currentUserId) {
@@ -182,7 +195,7 @@ export default function MockTests() {
     const isFreeSet = setInfo ? Boolean(setInfo.is_free) : test.id <= 3;
     const isAccessible = isPro(profile) || isFreeSet;
     if (!isAccessible) {
-      setLockedMsgId(test.id);
+      setShowUpgrade(true);
       return;
     }
     navigate('/test/engine', {
@@ -333,13 +346,13 @@ export default function MockTests() {
 
                       {!isAccessible ? (
                         <button
-                          onClick={() => setLockedMsgId(lockedMsgId === test.id ? null : test.id)}
+                          onClick={() => setShowUpgrade(true)}
                           style={{
                             display: 'flex', alignItems: 'center', gap: 6, padding: '8px 18px',
-                            border: '1px solid #E2E8F0', borderRadius: 8, background: '#F8FAFC',
-                            cursor: 'pointer', fontSize: 13, fontWeight: 700, color: '#0F172A', fontFamily: 'inherit'
+                            border: 'none', borderRadius: 8, background: 'var(--accent-navy)',
+                            cursor: 'pointer', fontSize: 13, fontWeight: 700, color: '#fff', fontFamily: 'inherit'
                           }}>
-                          <Lock size={13} color="#D97706" /> Locked 🔒
+                          🔒 Unlock Pro — ₹999
                         </button>
                       ) : (
                         <button
@@ -372,8 +385,21 @@ export default function MockTests() {
                       gap: 8,
                     }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <Lock size={13} color="#92400E" />
-                        <span>Pro feature — unlock coming soon</span>
+                        <button
+                          onClick={() => setShowUpgrade(true)}
+                          style={{
+                            background: 'var(--accent-navy)',
+                            color: '#ffffff',
+                            border: 'none',
+                            borderRadius: 6,
+                            padding: '6px 14px',
+                            fontSize: 12,
+                            fontWeight: 700,
+                            cursor: 'pointer'
+                          }}
+                        >
+                          🔒 Unlock Pro — ₹999
+                        </button>
                       </div>
                       <button
                         onClick={() => setLockedMsgId(null)}
@@ -449,6 +475,7 @@ export default function MockTests() {
 
         </div>
       </main>
+      {showUpgrade && <UpgradeModal onClose={() => setShowUpgrade(false)} userId={userId} />}
     </div>
   );
 }
