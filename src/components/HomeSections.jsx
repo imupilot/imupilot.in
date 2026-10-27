@@ -262,11 +262,14 @@ export default function HomeSections() {
               </p>
             </div>
             <div style={{ display: 'flex', gap: '40px', flexWrap: 'wrap' }}>
-              {['Privacy Policy', 'Terms', 'Curriculum', 'Contact'].map(link => (
-                <AnimatedUnderlineLink key={link} href="#" style={{ color: 'rgba(255,255,255,0.55)', fontSize: '14px', fontWeight: 500, transition: 'color 0.15s' }}
+              {[
+                { name: 'Privacy Policy', href: '/privacy' },
+                { name: 'Contact', href: '/contact' }
+              ].map(link => (
+                <AnimatedUnderlineLink key={link.name} href={link.href} style={{ color: 'rgba(255,255,255,0.55)', fontSize: '14px', fontWeight: 500, transition: 'color 0.15s' }}
                   onMouseOver={e => e.target.style.color = W}
                   onMouseOut={e => e.target.style.color = 'rgba(255,255,255,0.55)'}
-                >{link}</AnimatedUnderlineLink>
+                >{link.name}</AnimatedUnderlineLink>
               ))}
             </div>
           </div>

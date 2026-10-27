@@ -221,9 +221,16 @@ export default function IMUpilotSidebar() {
       {/* Bottom */}
       <div style={{ borderTop: "1px solid #E2E8F0", padding: "12px 14px" }}>
         <button onClick={() => navigate("/contact")}
-          style={{ display: "flex", alignItems: "center", gap: 10, width: "100%", padding: "8px 10px", borderRadius: 9, border: "none", cursor: "pointer", background: "transparent", fontFamily: "inherit", fontSize: 13, fontWeight: 500, color: "#475569", marginBottom: 8, textAlign: "left" }}>
+          style={{ display: "flex", alignItems: "center", gap: 10, width: "100%", padding: "7px 10px", borderRadius: 9, border: "none", cursor: "pointer", background: "transparent", fontFamily: "inherit", fontSize: 13, fontWeight: 500, color: "#475569", textAlign: "left" }}>
           <IC path={ICONS.contact} size={15} />
           Help &amp; Support
+        </button>
+        <button onClick={() => navigate("/privacy")}
+          style={{ display: "flex", alignItems: "center", gap: 10, width: "100%", padding: "7px 10px", borderRadius: 9, border: "none", cursor: "pointer", background: "transparent", fontFamily: "inherit", fontSize: 13, fontWeight: 500, color: "#475569", marginBottom: 6, textAlign: "left" }}>
+          <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+          </svg>
+          Privacy Policy
         </button>
         {user.id && (
           <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 10px", borderTop: "1px solid #F1F5F9", paddingTop: 10 }}>
