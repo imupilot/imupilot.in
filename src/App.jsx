@@ -16,6 +16,7 @@ import SettingsPage from './pages/Settings';
 import MockTests from './pages/MockTests';
 import StudyPlanner from './pages/StudyPlanner';
 import PrivacyPolicy from './pages/PrivacyPolicy';
+import Terms from './pages/Terms';
 import './App.css';
 
 function ProtectedRoute({ children }) {
@@ -41,6 +42,8 @@ export default function App() {
           <Route path="/admin" element={<Admin />} />
           <Route path="/privacy" element={<PrivacyPolicy />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/terms-and-conditions" element={<Terms />} />
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/analytics" element={<ProtectedRoute><AnalyticsPage /></ProtectedRoute>} />
           <Route path="/learn" element={<ProtectedRoute><Learn /></ProtectedRoute>} />
