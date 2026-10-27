@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { LogoIcon } from "./Icons";
-import { X, Shield, FileText, ExternalLink, Mail, Phone, Lock, CheckCircle2 } from "lucide-react";
+import { X, Shield, FileText, ExternalLink } from "lucide-react";
 
 export const Footer = () => {
   const [modalType, setModalType] = useState<"privacy" | "terms" | null>(null);
 
-  // Close modal on escape key
+  // Close modal on escape key and control body scroll
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") setModalType(null);
@@ -64,20 +64,20 @@ export const Footer = () => {
                 <button
                   type="button"
                   onClick={() => setModalType("privacy")}
-                  className="block w-full text-center md:text-left hover:text-slate-950 transition-colors font-medium text-slate-700 cursor-pointer"
+                  className="block w-full text-center md:text-left text-slate-600 hover:text-slate-900 transition-colors font-normal cursor-pointer bg-transparent border-none p-0 text-sm"
                 >
                   Privacy
                 </button>
                 <button
                   type="button"
                   onClick={() => setModalType("terms")}
-                  className="block w-full text-center md:text-left hover:text-slate-950 transition-colors font-medium text-slate-700 cursor-pointer"
+                  className="block w-full text-center md:text-left text-slate-600 hover:text-slate-900 transition-colors font-normal cursor-pointer bg-transparent border-none p-0 text-sm"
                 >
                   Terms
                 </button>
                 <Link
                   to="/contact"
-                  className="block hover:text-slate-950 transition-colors font-medium text-slate-700"
+                  className="block text-slate-600 hover:text-slate-900 transition-colors text-sm"
                 >
                   Contact
                 </Link>
@@ -91,7 +91,7 @@ export const Footer = () => {
         </section>
       </footer>
 
-      {/* ── INTERACTIVE LEGAL MODAL ── */}
+      {/* ── THEME-ALIGNED LEGAL MODAL ── */}
       {modalType && (
         <div
           role="dialog"
@@ -101,8 +101,8 @@ export const Footer = () => {
             position: "fixed",
             inset: 0,
             zIndex: 9999,
-            backgroundColor: "rgba(10, 15, 29, 0.75)",
-            backdropFilter: "blur(6px)",
+            backgroundColor: "rgba(15, 23, 42, 0.65)",
+            backdropFilter: "blur(4px)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -117,8 +117,8 @@ export const Footer = () => {
               maxHeight: "88vh",
               backgroundColor: "#FFFFFF",
               color: "#0F172A",
-              borderRadius: "20px",
-              boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.35)",
+              borderRadius: "16px",
+              boxShadow: "0 25px 50px -12px rgba(15, 23, 42, 0.25)",
               display: "flex",
               flexDirection: "column",
               overflow: "hidden",
@@ -129,7 +129,7 @@ export const Footer = () => {
             {/* Modal Header */}
             <div
               style={{
-                padding: "20px 24px",
+                padding: "18px 24px",
                 borderBottom: "1px solid #E2E8F0",
                 display: "flex",
                 alignItems: "center",
@@ -140,20 +140,20 @@ export const Footer = () => {
               <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
                 <div
                   style={{
-                    width: 40,
-                    height: 40,
+                    width: 38,
+                    height: 38,
                     borderRadius: "10px",
-                    background: "#0F172A",
+                    background: "#1B3A6B",
                     color: "#FFFFFF",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
                   }}
                 >
-                  {modalType === "privacy" ? <Shield size={20} color="#60A5FA" /> : <FileText size={20} color="#60A5FA" />}
+                  {modalType === "privacy" ? <Shield size={19} color="#FFFFFF" /> : <FileText size={19} color="#FFFFFF" />}
                 </div>
                 <div>
-                  <h3 style={{ margin: 0, fontSize: "17px", fontWeight: 800, color: "#0F172A" }}>
+                  <h3 style={{ margin: 0, fontSize: "17px", fontWeight: 700, color: "#0F172A" }}>
                     {modalType === "privacy" ? "Privacy Policy" : "Terms & Conditions"}
                   </h3>
                   <div style={{ fontSize: "12px", color: "#64748B" }}>
@@ -170,12 +170,13 @@ export const Footer = () => {
                   height: 32,
                   borderRadius: "50%",
                   border: "none",
-                  background: "#E2E8F0",
-                  color: "#475569",
+                  background: "#F1F5F9",
+                  color: "#64748B",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                   cursor: "pointer",
+                  transition: "background 0.15s",
                 }}
                 aria-label="Close"
               >
@@ -195,12 +196,12 @@ export const Footer = () => {
             >
               {modalType === "privacy" ? (
                 <div style={{ display: "flex", flexDirection: "column", gap: "18px" }}>
-                  <div style={{ background: "#EFF6FF", border: "1px solid #BFDBFE", borderRadius: "10px", padding: "12px 16px", color: "#1E40AF", fontSize: "13px" }}>
+                  <div style={{ background: "#F8FAFC", border: "1px solid #E2E8F0", borderRadius: "10px", padding: "12px 16px", color: "#1B3A6B", fontSize: "13px" }}>
                     <strong>Privacy Commitment:</strong> We protect your exam history, personal details, and payments. We never sell personal data to third parties.
                   </div>
 
                   <div>
-                    <h4 style={{ margin: "0 0 6px", fontSize: "15px", fontWeight: 750, color: "#0F172A" }}>
+                    <h4 style={{ margin: "0 0 6px", fontSize: "15px", fontWeight: 700, color: "#0F172A" }}>
                       1. Information We Collect
                     </h4>
                     <p style={{ margin: 0 }}>
@@ -209,7 +210,7 @@ export const Footer = () => {
                   </div>
 
                   <div>
-                    <h4 style={{ margin: "0 0 6px", fontSize: "15px", fontWeight: 750, color: "#0F172A" }}>
+                    <h4 style={{ margin: "0 0 6px", fontSize: "15px", fontWeight: 700, color: "#0F172A" }}>
                       2. Razorpay Payment Gateway
                     </h4>
                     <p style={{ margin: 0 }}>
@@ -218,7 +219,7 @@ export const Footer = () => {
                   </div>
 
                   <div>
-                    <h4 style={{ margin: "0 0 6px", fontSize: "15px", fontWeight: 750, color: "#0F172A" }}>
+                    <h4 style={{ margin: "0 0 6px", fontSize: "15px", fontWeight: 700, color: "#0F172A" }}>
                       3. CBT Exam Anti-Cheat Telemetry
                     </h4>
                     <p style={{ margin: 0 }}>
@@ -227,7 +228,7 @@ export const Footer = () => {
                   </div>
 
                   <div>
-                    <h4 style={{ margin: "0 0 6px", fontSize: "15px", fontWeight: 750, color: "#0F172A" }}>
+                    <h4 style={{ margin: "0 0 6px", fontSize: "15px", fontWeight: 700, color: "#0F172A" }}>
                       4. Data Storage &amp; Security
                     </h4>
                     <p style={{ margin: 0 }}>
@@ -236,14 +237,14 @@ export const Footer = () => {
                   </div>
 
                   <div>
-                    <h4 style={{ margin: "0 0 6px", fontSize: "15px", fontWeight: 750, color: "#0F172A" }}>
+                    <h4 style={{ margin: "0 0 6px", fontSize: "15px", fontWeight: 700, color: "#0F172A" }}>
                       5. Your Rights &amp; Grievances
                     </h4>
                     <p style={{ margin: "0 0 8px" }}>
                       You have the right to review, update, or request deletion of your account and test attempts at any time.
                     </p>
                     <div style={{ background: "#F8FAFC", border: "1px solid #E2E8F0", borderRadius: "8px", padding: "10px 14px", fontSize: "12px", color: "#475569" }}>
-                      <div>📧 Email: <a href="mailto:imupilot@gmail.com" style={{ color: "#2563EB", fontWeight: 600 }}>imupilot@gmail.com</a></div>
+                      <div>📧 Email: <a href="mailto:imupilot@gmail.com" style={{ color: "#1B3A6B", fontWeight: 600 }}>imupilot@gmail.com</a></div>
                       <div>💬 WhatsApp: <a href="https://wa.me/917077664992" target="_blank" rel="noreferrer" style={{ color: "#16A34A", fontWeight: 600 }}>+91 70776 64992</a></div>
                       <div>📍 Location: India (Response within 24-48 hrs)</div>
                     </div>
@@ -251,12 +252,12 @@ export const Footer = () => {
                 </div>
               ) : (
                 <div style={{ display: "flex", flexDirection: "column", gap: "18px" }}>
-                  <div style={{ background: "#F0FDF4", border: "1px solid #BBF7D0", borderRadius: "10px", padding: "12px 16px", color: "#166534", fontSize: "13px" }}>
+                  <div style={{ background: "#F8FAFC", border: "1px solid #E2E8F0", borderRadius: "10px", padding: "12px 16px", color: "#1B3A6B", fontSize: "13px" }}>
                     <strong>Terms of Use:</strong> By accessing IMUpilot, you agree to these exam preparation terms and fair-use guidelines.
                   </div>
 
                   <div>
-                    <h4 style={{ margin: "0 0 6px", fontSize: "15px", fontWeight: 750, color: "#0F172A" }}>
+                    <h4 style={{ margin: "0 0 6px", fontSize: "15px", fontWeight: 700, color: "#0F172A" }}>
                       1. Educational Service
                     </h4>
                     <p style={{ margin: 0 }}>
@@ -265,7 +266,7 @@ export const Footer = () => {
                   </div>
 
                   <div>
-                    <h4 style={{ margin: "0 0 6px", fontSize: "15px", fontWeight: 750, color: "#0F172A" }}>
+                    <h4 style={{ margin: "0 0 6px", fontSize: "15px", fontWeight: 700, color: "#0F172A" }}>
                       2. Pro Plan &amp; Payments
                     </h4>
                     <p style={{ margin: 0 }}>
@@ -274,7 +275,7 @@ export const Footer = () => {
                   </div>
 
                   <div>
-                    <h4 style={{ margin: "0 0 6px", fontSize: "15px", fontWeight: 750, color: "#0F172A" }}>
+                    <h4 style={{ margin: "0 0 6px", fontSize: "15px", fontWeight: 700, color: "#0F172A" }}>
                       3. Intellectual Property &amp; Fair Use
                     </h4>
                     <p style={{ margin: 0 }}>
@@ -283,7 +284,7 @@ export const Footer = () => {
                   </div>
 
                   <div>
-                    <h4 style={{ margin: "0 0 6px", fontSize: "15px", fontWeight: 750, color: "#0F172A" }}>
+                    <h4 style={{ margin: "0 0 6px", fontSize: "15px", fontWeight: 700, color: "#0F172A" }}>
                       4. Examination Disclaimer
                     </h4>
                     <p style={{ margin: 0 }}>
@@ -313,7 +314,7 @@ export const Footer = () => {
                     display: "inline-flex",
                     alignItems: "center",
                     gap: "5px",
-                    color: "#2563EB",
+                    color: "#1B3A6B",
                     fontSize: "13px",
                     fontWeight: 600,
                     textDecoration: "none",
@@ -332,7 +333,7 @@ export const Footer = () => {
                 type="button"
                 onClick={() => setModalType(null)}
                 style={{
-                  background: "#0F172A",
+                  background: "#1B3A6B",
                   color: "#FFFFFF",
                   border: "none",
                   borderRadius: "8px",
