@@ -36,7 +36,11 @@ export default function UpgradeModal({
         }
       }
 
-      const res = await fetch('/api/create-order', { method: 'POST' });
+      const res = await fetch('/api/create-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: targetUserId }),
+      });
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
         throw new Error(errorData.error || 'Failed to create payment order. Please ensure Razorpay keys are configured.');

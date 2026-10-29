@@ -10,7 +10,7 @@ const WhatsAppIcon = () => (
 
 const INFO = [
   { icon: <Mail size={18} />,      title: 'Email Us',      value: 'imupilot@gmail.com',      link: 'mailto:imupilot@gmail.com' },
-  { icon: <WhatsAppIcon />,        title: 'WhatsApp',      value: '+91 70776 64992',           link: 'https://wa.me/917077664992' },
+  { icon: <WhatsAppIcon />,        title: 'WhatsApp',      value: '+91 76069 63299',           link: 'https://wa.me/917606963299' },
   { icon: <MapPin size={18} />,    title: 'Location',      value: 'India',                    link: null },
   { icon: <Clock size={18} />,     title: 'Support Hours', value: 'Mon–Sat: 9AM – 6PM IST',   link: null },
 ];
@@ -18,6 +18,7 @@ const INFO = [
 const FORMSPREE_URL = 'https://formspree.io/f/mkoawaen';
 
 export default function Contact() {
+  const [mobileOpen, setMobileOpen] = useState(false);
   const [form, setForm] = useState({ name: '', email: '', phone: '', subject: '', message: '' });
   const [status, setStatus] = useState('idle'); // idle | sending | success | error
 
@@ -113,9 +114,26 @@ export default function Contact() {
           href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap"
           rel="stylesheet"
         />
-        <IMUpilotSidebar />
+        <IMUpilotSidebar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
 
-        <main style={{ flex: 1, overflowY: 'auto', minWidth: 0 }}>
+        <main style={{ flex: 1, minWidth: 0, overflowX: 'hidden', overflowY: 'auto' }}>
+          {/* Mobile topbar */}
+          <div style={{
+            display: 'none', // hidden on desktop via CSS
+            position: 'sticky', top: 0, zIndex: 30,
+            background: '#FFFFFF',
+            borderBottom: '1px solid #E2E8F0',
+            padding: '12px 16px',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }} className="mobile-topbar">
+            <span style={{ fontWeight: 700, fontSize: 18, color: '#0F172A' }}>IMUpilot</span>
+            <button onClick={() => setMobileOpen(true)} style={{
+              background: 'none', border: 'none', cursor: 'pointer',
+              color: '#0F172A', fontSize: 22
+            }}>☰</button>
+          </div>
+
           {/* Topbar */}
           <div
             style={{

@@ -21,6 +21,7 @@ const routeList: RouteProps[] = [
   { href: "#learn", label: "Learn" },
   { href: "#analytics", label: "Analytics" },
   { href: "#dns", label: "DNS Sponsorship" },
+  { href: "#pricing", label: "Pricing" },
 ];
 
 export const Navbar = () => {

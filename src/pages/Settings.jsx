@@ -16,6 +16,7 @@ const Section = ({ title, children }) => (
 );
 
 export default function Settings() {
+  const [mobileOpen, setMobileOpen] = useState(false);
   const [notifs, setNotifs] = useState({ mockReminders: true, weakTopicAlerts: true, weeklyProgress: true, newTests: false, whatsapp: true, email: true });
   const [prefs, setPrefs] = useState({ autoNext: true, negativeMarking: true, timerWarning: true, keyboardShortcuts: true, fullscreen: false, autoSave: true });
   const [theme, setTheme] = useState('light');
@@ -24,8 +25,25 @@ export default function Settings() {
   return (
     <div style={{ display: 'flex', height: '100vh', fontFamily: "'DM Sans','Segoe UI',sans-serif", background: '#F7F6F3', overflow: 'hidden' }}>
       <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
-      <IMUpilotSidebar />
-      <main style={{ flex: 1, overflowY: 'auto' }}>
+      <IMUpilotSidebar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
+      <main style={{ flex: 1, minWidth: 0, overflowX: 'hidden', overflowY: 'auto' }}>
+        {/* Mobile topbar */}
+        <div style={{
+          display: 'none', // hidden on desktop via CSS
+          position: 'sticky', top: 0, zIndex: 30,
+          background: '#FFFFFF',
+          borderBottom: '1px solid #E2E8F0',
+          padding: '12px 16px',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }} className="mobile-topbar">
+          <span style={{ fontWeight: 700, fontSize: 18, color: '#0F172A' }}>IMUpilot</span>
+          <button onClick={() => setMobileOpen(true)} style={{
+            background: 'none', border: 'none', cursor: 'pointer',
+            color: '#0F172A', fontSize: 22
+          }}>☰</button>
+        </div>
+
         <div style={{ background: '#fff', borderBottom: '1px solid #ECEAE4', padding: '0 28px', height: 58, display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 10 }}>
           <div>
             <div style={{ fontWeight: 700, fontSize: 19, letterSpacing: '-0.02em', color: '#1A1A18' }}>Settings</div>
@@ -36,7 +54,7 @@ export default function Settings() {
           </button>
         </div>
 
-        <div style={{ padding: '28px', maxWidth: 800 }}>
+        <div style={{ padding: 'clamp(12px, 4vw, 28px)', maxWidth: 800 }}>
 
           {/* PROFILE */}
           <Section title="👤 Profile Settings">

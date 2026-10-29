@@ -15,8 +15,12 @@ import Contact from './pages/Contact';
 import SettingsPage from './pages/Settings';
 import MockTests from './pages/MockTests';
 import StudyPlanner from './pages/StudyPlanner';
+import MockInterview from './pages/MockInterview';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import Terms from './pages/Terms';
+import Pricing from './pages/Pricing';
+import Notes from './pages/Notes';
+import { Analytics } from '@vercel/analytics/react';
 import './App.css';
 
 function ProtectedRoute({ children }) {
@@ -40,6 +44,7 @@ export default function App() {
           <Route path="/coming-soon" element={<ComingSoon />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/admin" element={<Admin />} />
+          <Route path="/pricing" element={<Pricing />} />
           <Route path="/privacy" element={<PrivacyPolicy />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/terms" element={<Terms />} />
@@ -47,8 +52,10 @@ export default function App() {
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/analytics" element={<ProtectedRoute><AnalyticsPage /></ProtectedRoute>} />
           <Route path="/learn" element={<ProtectedRoute><Learn /></ProtectedRoute>} />
+          <Route path="/notes" element={<ProtectedRoute><Notes /></ProtectedRoute>} />
           <Route path="/revise" element={<ProtectedRoute><SmartRevision /></ProtectedRoute>} />
           <Route path="/planner" element={<ProtectedRoute><StudyPlanner /></ProtectedRoute>} />
+          <Route path="/interview" element={<ProtectedRoute><MockInterview /></ProtectedRoute>} />
           <Route path="/test" element={<ProtectedRoute><MockTests /></ProtectedRoute>} />
           <Route path="/test/engine" element={<ProtectedRoute><MockTestEngine /></ProtectedRoute>} />
           <Route path="/test/sectional" element={<ProtectedRoute><SectionalTestEngine /></ProtectedRoute>} />
@@ -58,6 +65,7 @@ export default function App() {
           <Route path="/student/dashboard" element={<Navigate to="/dashboard" replace />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+        <Analytics />
       </BrowserRouter>
     </ThemeProvider>
   );

@@ -8,11 +8,20 @@ export default async function handler(req, res) {
       key_secret: process.env.RAZORPAY_KEY_SECRET,
     });
 
-    const order = await razorpay.orders.create({
+    const body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body || {});
+    const userId = body.userId || body.user_id;
+
+    const orderOptions = {
       amount: 99900, // ₹999 in paise
       currency: 'INR',
       receipt: `receipt_${Date.now()}`,
-    });
+    };
+
+    if (userId) {
+      orderOptions.notes = { user_id: userId };
+    }
+
+    const order = await razorpay.orders.create(orderOptions);
 
     res.status(200).json(order);
   } catch (error) {

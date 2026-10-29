@@ -1,6 +1,7 @@
 import { About } from "../components/About";
 import { Cta } from "../components/Cta";
 import { Features } from "../components/Features";
+import { Pricing } from "../components/Pricing";
 import { Footer } from "../components/Footer";
 import { Hero } from "../components/Hero";
 import { HowItWorks } from "../components/HowItWorks";
@@ -21,6 +22,7 @@ export default function Home() {
         <About />
         <HowItWorks />
         <Features />
+        <Pricing />
         <Team />
         <Newsletter />
         <Services />

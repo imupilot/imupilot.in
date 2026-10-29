@@ -71,6 +71,7 @@ function formatShortDate(dateStr) {
 
 export default function AnalyticsPage() {
   const navigate = useNavigate();
+  const [mobileOpen, setMobileOpen] = useState(false);
   const [history, setHistory] = useState([]);
   const [profile, setProfile] = useState(null);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
@@ -93,7 +94,7 @@ export default function AnalyticsPage() {
   }, []);
 
   useEffect(() => {
-    const loadTestHistory = () => {
+    const loadLocalStorageHistory = () => {
       try {
         const userStr = localStorage.getItem("user");
         const user = userStr ? JSON.parse(userStr) : null;
@@ -157,9 +158,48 @@ export default function AnalyticsPage() {
       }
     };
 
-    loadTestHistory();
-    window.addEventListener("storage", loadTestHistory);
-    return () => window.removeEventListener("storage", loadTestHistory);
+    const loadHistoryData = async () => {
+      try {
+        const userStr = localStorage.getItem("user");
+        const user = userStr ? JSON.parse(userStr) : null;
+        const userId = user?.id;
+
+        if (userId) {
+          // Try Supabase first
+          const { data: dbResults, error } = await supabase
+            .from("test_results")
+            .select("*")
+            .eq("user_id", userId)
+            .order("completed_at", { ascending: false });
+
+          if (!error && dbResults && dbResults.length > 0) {
+            // Map DB fields to match existing history format
+            const mapped = dbResults.map((r) => ({
+              score: r.score,
+              totalQuestions: r.total_questions,
+              correct: r.correct,
+              incorrect: r.incorrect,
+              unattempted: r.unattempted,
+              timeTakenSeconds: r.time_taken_seconds,
+              subjectBreakdown: r.subject_breakdown,
+              completedAt: r.completed_at,
+              name: `Mock Set ${r.set_number}`,
+            }));
+            setHistory(mapped);
+            return;
+          }
+        }
+      } catch (err) {
+        console.warn("Unable to fetch test_results from Supabase, falling back to localStorage:", err);
+      }
+
+      // Fall back to existing localStorage logic
+      loadLocalStorageHistory();
+    };
+
+    loadHistoryData();
+    window.addEventListener("storage", loadLocalStorageHistory);
+    return () => window.removeEventListener("storage", loadLocalStorageHistory);
   }, []);
 
   // Subject Aggregates across ALL tests
@@ -312,7 +352,7 @@ export default function AnalyticsPage() {
           gap: 12px;
         }
         .analytics-pad {
-          padding: 24px 28px !important;
+          padding: clamp(12px, 4vw, 28px) !important;
         }
         .analytics-topbar {
           padding: 0 28px !important;
@@ -345,7 +385,7 @@ export default function AnalyticsPage() {
             grid-template-columns: 1fr 1fr !important;
           }
           .analytics-pad {
-            padding: 16px !important;
+            padding: clamp(12px, 4vw, 28px) !important;
             padding-bottom: 84px !important;
           }
           .analytics-topbar {
@@ -379,9 +419,26 @@ export default function AnalyticsPage() {
           href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap"
           rel="stylesheet"
         />
-        <IMUpilotSidebar />
+        <IMUpilotSidebar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
 
-        <main style={{ flex: 1, overflowY: "auto", minWidth: 0 }}>
+        <main style={{ flex: 1, minWidth: 0, overflowX: "hidden", overflowY: "auto" }}>
+          {/* Mobile topbar */}
+          <div style={{
+            display: 'none', // hidden on desktop via CSS
+            position: 'sticky', top: 0, zIndex: 30,
+            background: '#FFFFFF',
+            borderBottom: '1px solid #E2E8F0',
+            padding: '12px 16px',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }} className="mobile-topbar">
+            <span style={{ fontWeight: 700, fontSize: 18, color: '#0F172A' }}>IMUpilot</span>
+            <button onClick={() => setMobileOpen(true)} style={{
+              background: 'none', border: 'none', cursor: 'pointer',
+              color: '#0F172A', fontSize: 22
+            }}>☰</button>
+          </div>
+
           {/* Topbar */}
           <div
             className="analytics-topbar"
@@ -984,6 +1041,93 @@ export default function AnalyticsPage() {
                     })}
                   </div>
                 </div>
+
+                {/* FOCUS RECOMMENDATION CARD (PRO-ONLY) */}
+                {stats.weakestSubject && (
+                  <div
+                    style={{
+                      background: "#FFFFFF",
+                      border: "1px solid #E2E8F0",
+                      borderRadius: 16,
+                      padding: "20px 24px",
+                      marginBottom: 20,
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      gap: 20,
+                      flexWrap: "wrap",
+                    }}
+                  >
+                    <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+                      <div
+                        style={{
+                          width: 44,
+                          height: 44,
+                          borderRadius: 12,
+                          background: "#0F172A",
+                          color: "#FFFFFF",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          flexShrink: 0,
+                        }}
+                      >
+                        <Sparkles size={20} />
+                      </div>
+                      <div>
+                        <div
+                          style={{
+                            fontSize: 11,
+                            fontWeight: 700,
+                            color: "#64748B",
+                            textTransform: "uppercase",
+                            letterSpacing: "0.06em",
+                            marginBottom: 4,
+                          }}
+                        >
+                          Focus Recommendation
+                        </div>
+                        <div
+                          style={{
+                            fontSize: 15,
+                            fontWeight: 700,
+                            color: "#0F172A",
+                            marginBottom: 4,
+                          }}
+                        >
+                          Your weakest subject is <span style={{ textDecoration: "underline" }}>{stats.weakestSubject.name}</span> at {stats.weakestSubject.accuracy}% accuracy.
+                        </div>
+                        <div style={{ fontSize: 13, color: "#64748B" }}>
+                          Suggested: Spend 2 extra sessions on {stats.weakestSubject.name} this week.
+                        </div>
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => navigate(`/planner?subject=${encodeURIComponent(stats.weakestSubject.name)}`, { state: { subject: stats.weakestSubject.name } })}
+                      style={{
+                        background: "#0F172A",
+                        color: "#FFFFFF",
+                        border: "none",
+                        borderRadius: 10,
+                        padding: "10px 18px",
+                        fontSize: 13,
+                        fontWeight: 600,
+                        cursor: "pointer",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 8,
+                        boxShadow: "0 4px 14px rgba(15, 23, 42, 0.15)",
+                        transition: "transform 0.15s ease",
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.transform = "translateY(-1px)")}
+                      onMouseLeave={(e) => (e.currentTarget.style.transform = "translateY(0)")}
+                    >
+                      <span>Add to Planner</span>
+                      <span>→</span>
+                    </button>
+                  </div>
+                )}
               </>
             ) : (
               /* PRO BLURRED PLACEHOLDER FOR FREE USERS */

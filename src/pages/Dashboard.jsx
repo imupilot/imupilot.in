@@ -88,6 +88,7 @@ function SectionHeading({ eyebrow, title, action }) {
 export default function Dashboard() {
   const navigate = useNavigate();
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const [history, setHistory] = useState([]);
   const [user, setUser] = useState(null);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -201,9 +202,26 @@ export default function Dashboard() {
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: "#F8FAFC", color: "#0F172A", fontFamily: "Inter, ui-sans-serif, system-ui, sans-serif" }}>
-      <IMUpilotSidebar />
-      <main style={{ minWidth: 0, flex: 1, overflowY: "auto" }}>
-        <header style={{ height: 72, padding: isMobile ? "0 16px" : "0 32px", display: "flex", alignItems: "center", justifyContent: "space-between", background: "#fff", borderBottom: "1px solid #E2E8F0", position: "sticky", top: isMobile ? 56 : 0, zIndex: 20 }}>
+      <IMUpilotSidebar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
+      <main style={{ flex: 1, minWidth: 0, overflowX: 'hidden', overflowY: "auto" }}>
+        {/* Mobile topbar */}
+        <div style={{
+          display: 'none', // hidden on desktop via CSS
+          position: 'sticky', top: 0, zIndex: 30,
+          background: '#FFFFFF',
+          borderBottom: '1px solid #E2E8F0',
+          padding: '12px 16px',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }} className="mobile-topbar">
+          <span style={{ fontWeight: 700, fontSize: 18, color: '#0F172A' }}>IMUpilot</span>
+          <button onClick={() => setMobileOpen(true)} style={{
+            background: 'none', border: 'none', cursor: 'pointer',
+            color: '#0F172A', fontSize: 22
+          }}>☰</button>
+        </div>
+
+        <header style={{ height: 72, padding: isMobile ? "0 16px" : "0 32px", display: "flex", alignItems: "center", justifyContent: "space-between", background: "#fff", borderBottom: "1px solid #E2E8F0", position: "sticky", top: 0, zIndex: 20 }}>
           <div>
             <div style={{ fontSize: 13, color: "#64748B" }}>IMUPilot / Dashboard</div>
             <div style={{ marginTop: 2, fontSize: 12, color: "#94A3B8" }}>Your preparation overview</div>
@@ -238,7 +256,7 @@ export default function Dashboard() {
           </div>
         </header>
 
-        <div style={{ width: "100%", maxWidth: 1480, margin: "0 auto", padding: isMobile ? "26px 16px 92px" : "34px 36px 48px" }}>
+        <div style={{ width: "100%", maxWidth: 1480, margin: "0 auto", padding: isMobile ? "clamp(12px, 4vw, 28px)" : "34px 36px 48px" }}>
           <div style={{ marginBottom: 26 }}>
             <div style={{ color: "#0F172A", fontSize: isMobile ? 25 : 31, fontWeight: 650, lineHeight: 1.2, letterSpacing: "-0.045em" }}>{getGreeting()}, {firstName}</div>
             <div style={{ marginTop: 8, color: "#64748B", fontSize: 14 }}>Here's where your preparation stands.</div>

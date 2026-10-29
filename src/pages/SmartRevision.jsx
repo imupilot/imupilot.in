@@ -1,31 +1,27 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ChevronRight, ChevronLeft, Layers, FastForward, Bookmark, CheckCircle2, XCircle, BookOpen, BarChart3, Lock } from 'lucide-react';
 import IMUpilotSidebar from '../components/IMUpilotSidebar';
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '../supabaseClient';
 import { isPro } from '../utils/planUtils';
 import UpgradeModal from '../components/UpgradeModal';
 
-const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL,
-  import.meta.env.VITE_SUPABASE_ANON_KEY
-);
-
 const COMPANY_COLORS = {
-  'Anglo Eastern':    '#1B3A6B',
-  'Maersk':           '#0033A0',
-  'MSC':              '#4A154B',
-  'SCI':              '#B22222',
-  'SIMS':             '#1A6B3A',
-  'Great Eastern':    '#E8630A',
+  'Anglo Eastern': '#1B3A6B',
+  'Maersk': '#0033A0',
+  'MSC': '#4A154B',
+  'SCI': '#B22222',
+  'SIMS': '#1A6B3A',
+  'Great Eastern': '#E8630A',
   'Fleet Management': '#2C7873',
 };
 
 const SUBJECT_COLORS = {
-  'Physics':           '#3B82F6',
-  'Chemistry':         '#10B981',
-  'Mathematics':       '#F59E0B',
-  'English':           '#8B5CF6',
-  'General Aptitude':  '#EF4444',
+  'Physics': '#3B82F6',
+  'Chemistry': '#10B981',
+  'Mathematics': '#F59E0B',
+  'English': '#8B5CF6',
+  'General Aptitude': '#EF4444',
   'General Knowledge': '#EC4899',
 };
 
@@ -37,16 +33,16 @@ function getColor(name, section) {
 // ─── Flashcard View ───────────────────────────────────────────────────────────
 function FlashcardView({ title, cards, onBack, userId, color, initialProgress, onProgressChange, initialMode = 'all', progressAvailable = false, profile, onUpgrade }) {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isFlipped, setIsFlipped]       = useState(false);
-  const [progress, setProgress]         = useState(initialProgress || {});
-  const [mode, setMode]                 = useState(initialMode);
-  const [saving, setSaving]             = useState(false);
-  const [error, setError]               = useState('');
+  const [isFlipped, setIsFlipped] = useState(false);
+  const [progress, setProgress] = useState(initialProgress || {});
+  const [mode, setMode] = useState(initialMode);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
 
   useEffect(() => setProgress(initialProgress || {}), [initialProgress]);
 
   const visibleCards = cards.filter(card => {
-    if (mode === 'review')     return progress[card.id] === 'didnt_know';
+    if (mode === 'review') return progress[card.id] === 'didnt_know';
     if (mode === 'bookmarked') return progress[card.id] === 'bookmarked';
     return true;
   });
@@ -138,9 +134,9 @@ function FlashcardView({ title, cards, onBack, userId, color, initialProgress, o
     setTimeout(() => setCurrentIndex(i => Math.max(i - 1, 0)), 150);
   };
 
-  const reviewCount   = cards.filter(c => progress[c.id] === 'didnt_know').length;
+  const reviewCount = cards.filter(c => progress[c.id] === 'didnt_know').length;
   const bookmarkCount = cards.filter(c => progress[c.id] === 'bookmarked').length;
-  const knewCount     = cards.filter(c => progress[c.id] === 'knew_it').length;
+  const knewCount = cards.filter(c => progress[c.id] === 'knew_it').length;
 
   if (visibleCards.length === 0) {
     return (
@@ -180,8 +176,8 @@ function FlashcardView({ title, cards, onBack, userId, color, initialProgress, o
 
       <div style={{ width: '100%', maxWidth: 760, display: 'flex', gap: 8, marginBottom: 18 }}>
         {[
-          { key: 'all',        label: `All (${cards.length})` },
-          { key: 'review',     label: progressAvailable ? `Review (${reviewCount})` : 'Review' },
+          { key: 'all', label: `All (${cards.length})` },
+          { key: 'review', label: progressAvailable ? `Review (${reviewCount})` : 'Review' },
           { key: 'bookmarked', label: progressAvailable ? `Bookmarked (${bookmarkCount})` : 'Bookmarked' },
         ].map(tab => (
           <button key={tab.key} onClick={() => setMode(tab.key)} style={{
@@ -236,7 +232,7 @@ function FlashcardView({ title, cards, onBack, userId, color, initialProgress, o
         style={{ width: '100%', maxWidth: 760, minHeight: 300, position: 'relative', marginBottom: 16, padding: '38px 32px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', border: `1px solid ${isFlipped ? '#CBD5E1' : '#1E3A5F'}`, borderRadius: 20, background: isFlipped ? '#fff' : '#1E3A5F', color: isFlipped ? '#0F172A' : '#fff', textAlign: 'center', cursor: 'pointer', boxShadow: '0 10px 28px rgba(15,23,42,0.07)' }}>
 
         <div style={{ marginBottom: 16, color: isFlipped ? '#64748B' : '#CBD5E1', fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase' }}>{isFlipped ? 'Answer' : 'Question'}</div>
-        
+
         <div style={{ position: 'relative', width: '100%', display: 'flex', justifyContent: 'center' }}>
           <div style={{
             maxWidth: 620,
@@ -350,10 +346,10 @@ function FlashcardView({ title, cards, onBack, userId, color, initialProgress, o
         {visibleCards.map((card, i) => {
           const status = progress[card.id];
           let bg = 'var(--bg-tertiary)', textColor = 'var(--text-tertiary)';
-          if (i === currentIndex)          { bg = color;      textColor = '#fff'; }
-          else if (status === 'knew_it')   { bg = 'var(--accent-success-subtle)';  textColor = 'var(--accent-success)'; }
-          else if (status === 'didnt_know'){ bg = 'var(--accent-danger-subtle)';  textColor = 'var(--accent-danger)'; }
-          else if (status === 'bookmarked'){ bg = 'var(--accent-warning-subtle)';  textColor = 'var(--accent-warning)'; }
+          if (i === currentIndex) { bg = color; textColor = '#fff'; }
+          else if (status === 'knew_it') { bg = 'var(--accent-success-subtle)'; textColor = 'var(--accent-success)'; }
+          else if (status === 'didnt_know') { bg = 'var(--accent-danger-subtle)'; textColor = 'var(--accent-danger)'; }
+          else if (status === 'bookmarked') { bg = 'var(--accent-warning-subtle)'; textColor = 'var(--accent-warning)'; }
           return (
             <button key={card.id} onClick={() => { setCurrentIndex(i); setIsFlipped(false); }} style={{ width: 32, height: 32, borderRadius: '50%', border: 'none', background: bg, color: textColor, cursor: 'pointer', fontSize: 12, fontWeight: 600, fontFamily: 'inherit' }}>
               {i + 1}
@@ -384,7 +380,7 @@ function DeckGrid({ decks, section, onSelect, onBack, title, subtitle, onReview,
         )}
       </div>
 
-      <div style={{ padding: '24px 28px' }}>
+      <div style={{ padding: 'clamp(12px, 4vw, 28px)' }}>
 
         {/* Review + Bookmarked shortcuts */}
         {(onReview || onBookmarked) && <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: 12, marginBottom: 24 }}>
@@ -462,13 +458,43 @@ function DeckGrid({ decks, section, onSelect, onBack, title, subtitle, onReview,
 }
 
 
+function FlashcardLayout({ children, mobileOpen, setMobileOpen, bg = '#F8FAFC' }) {
+  return (
+    <div style={{ display: 'flex', height: '100vh', fontFamily: "'DM Sans','Segoe UI',sans-serif", background: bg, overflow: 'hidden' }}>
+      <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+      <IMUpilotSidebar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
+      <main style={{ flex: 1, minWidth: 0, overflowX: 'hidden', overflowY: 'auto' }}>
+        {/* Mobile topbar */}
+        <div style={{
+          display: 'none', // hidden on desktop via CSS
+          position: 'sticky', top: 0, zIndex: 30,
+          background: '#FFFFFF',
+          borderBottom: '1px solid #E2E8F0',
+          padding: '12px 16px',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }} className="mobile-topbar">
+          <span style={{ fontWeight: 700, fontSize: 18, color: '#0F172A' }}>IMUpilot</span>
+          <button onClick={() => setMobileOpen(true)} style={{
+            background: 'none', border: 'none', cursor: 'pointer',
+            color: '#0F172A', fontSize: 22
+          }}>☰</button>
+        </div>
+        {children}
+      </main>
+    </div>
+  );
+}
+
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function SmartRevision() {
-  const [allCards, setAllCards]         = useState([]);
-  const [loading, setLoading]           = useState(true);
-  const [loadError, setLoadError]       = useState('');
-  const [userId, setUserId]             = useState(null);
-  const [profile, setProfile]           = useState(null);
+  const navigate = useNavigate();
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [allCards, setAllCards] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
+  const [userId, setUserId] = useState(null);
+  const [profile, setProfile] = useState(null);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [sectionProgress, setSectionProgress] = useState({}); // flashcard_id -> status for all cards
   const [progressLoaded, setProgressLoaded] = useState(false);
@@ -480,38 +506,81 @@ export default function SmartRevision() {
     let active = true;
     async function loadLibrary() {
       try {
-        const [{ data: authData, error: authError }, { data: cards, error: cardsError }] = await Promise.all([
-          supabase.auth.getUser(),
-          supabase.from('flashcards').select('id, section, company, category, chapter, question, answer, type, subject, topic, explanation, exam_tip, difficulty, source, is_free, created_at'),
+        // 1. Get current authenticated user
+        let currentUserId = null;
+        try {
+          const { data: authData } = await supabase.auth.getUser();
+          if (authData?.user?.id) {
+            currentUserId = authData.user.id;
+          }
+        } catch (e) {
+          console.warn("getUser check:", e);
+        }
+
+        if (!currentUserId) {
+          try {
+            const { data: sessionData } = await supabase.auth.getSession();
+            if (sessionData?.session?.user?.id) {
+              currentUserId = sessionData.session.user.id;
+            }
+          } catch (e) {
+            console.warn("getSession check:", e);
+          }
+        }
+
+        if (!currentUserId) {
+          try {
+            const localUser = JSON.parse(localStorage.getItem('user') || 'null');
+            if (localUser?.id) {
+              currentUserId = localUser.id;
+              if (localUser.plan) setProfile({ plan: localUser.plan });
+            }
+          } catch (e) {}
+        }
+
+        if (!currentUserId) {
+          navigate('/auth', { replace: true });
+          return;
+        }
+
+        if (active) setUserId(currentUserId);
+
+        // 2. Fetch flashcards and profile plan
+        const [{ data: cards, error: cardsError }, { data: pData }] = await Promise.all([
+          supabase
+            .from('flashcards')
+            .select('id, section, company, category, chapter, question, answer, type, subject, topic, explanation, exam_tip, difficulty, source, is_free, created_at'),
+          supabase
+            .from('profiles')
+            .select('id, full_name, email, plan')
+            .eq('id', currentUserId)
+            .maybeSingle(),
         ]);
-        if (authError) throw authError;
+
         if (cardsError) throw cardsError;
         if (!active) return;
         const loadedCards = cards || [];
         setAllCards(loadedCards);
 
-        // Load profile plan for gating
-        const userStr = localStorage.getItem('user');
-        const localUser = userStr ? JSON.parse(userStr) : null;
-        if (localUser?.plan) setProfile({ plan: localUser.plan });
+        if (pData && active) setProfile(pData);
 
-        if (authData?.user) {
-          setUserId(authData.user.id);
-          const { data: pData } = await supabase.from('profiles').select('plan').eq('id', authData.user.id).maybeSingle();
-          if (pData && active) setProfile(pData);
-
-          if (loadedCards.length) {
+        // 3. Fetch progress for current user
+        if (loadedCards.length) {
+          try {
             const { data: progressRows, error: progressError } = await supabase
               .from('flashcard_progress')
               .select('flashcard_id, status')
-              .eq('user_id', authData.user.id)
+              .eq('user_id', currentUserId)
               .in('flashcard_id', loadedCards.map(card => card.id));
-            if (progressError) throw progressError;
-            if (!active) return;
-            const progressMap = {};
-            (progressRows || []).forEach(row => { progressMap[row.flashcard_id] = row.status; });
-            setSectionProgress(progressMap);
-            setProgressLoaded(true);
+
+            if (!progressError && progressRows && active) {
+              const progressMap = {};
+              progressRows.forEach(row => { progressMap[row.flashcard_id] = row.status; });
+              setSectionProgress(progressMap);
+              setProgressLoaded(true);
+            }
+          } catch (pErr) {
+            console.warn('Could not load flashcard progress:', pErr);
           }
         }
       } catch (error) {
@@ -523,9 +592,9 @@ export default function SmartRevision() {
     }
     loadLibrary();
     return () => { active = false; };
-  }, []);
+  }, [navigate]);
 
-  const dnsCards    = allCards.filter(c => !c.section || c.section === 'DNS');
+  const dnsCards = allCards.filter(c => !c.section || c.section === 'DNS');
   const imucetCards = allCards.filter(c => c.section === 'IMUCET');
   const dnsCompanies = [...new Set(dnsCards.map(c => c.company).filter(Boolean))].map(company => ({
     name: company,
@@ -557,53 +626,48 @@ export default function SmartRevision() {
   // ── Render ──
   if (loading) {
     return (
-      <div style={{ display: 'flex', height: '100vh', fontFamily: "'DM Sans','Segoe UI',sans-serif", background: 'var(--bg-primary)' }}>
-        <IMUpilotSidebar />
-        <main style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)', fontSize: 14 }}>
+      <FlashcardLayout mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} bg="var(--bg-primary)">
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)', fontSize: 14, minHeight: '60vh' }}>
           Loading...
-        </main>
-      </div>
+        </div>
+      </FlashcardLayout>
     );
   }
 
   if (loadError && !allCards.length) {
     return (
-      <div style={{ display: 'flex', minHeight: '100vh', fontFamily: "'DM Sans','Segoe UI',sans-serif", background: '#F8FAFC' }}>
-        <IMUpilotSidebar />
-        <main style={{ flex: 1, display: 'grid', placeItems: 'center', padding: 24 }}>
+      <FlashcardLayout mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} bg="#F8FAFC">
+        <div style={{ display: 'grid', placeItems: 'center', padding: 24, minHeight: '60vh' }}>
           <div role="alert" style={{ maxWidth: 520, padding: 24, border: '1px solid #FECACA', borderRadius: 14, background: '#fff', color: '#991B1B', fontSize: 14 }}>{loadError}</div>
-        </main>
-      </div>
+        </div>
+      </FlashcardLayout>
     );
   }
 
   // Active flashcard view
   if (view?.cards) {
     return (
-      <div style={{ display: 'flex', height: '100vh', fontFamily: "'DM Sans','Segoe UI',sans-serif", background: 'var(--bg-primary)', overflow: 'hidden' }}>
-        <IMUpilotSidebar />
-        <main style={{ flex: 1, overflowY: 'auto' }}>
-          <div style={{ background: 'var(--bg-elevated)', borderBottom: '1px solid var(--border-subtle)', padding: '0 28px', height: 58, display: 'flex', alignItems: 'center' }}>
-            <div>
-              <div style={{ fontWeight: 700, fontSize: 19, color: 'var(--text-primary)' }}>{view.title}</div>
-              <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>Recall the question, then reveal the answer.</div>
-            </div>
+      <FlashcardLayout mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} bg="var(--bg-primary)">
+        <div style={{ background: 'var(--bg-elevated)', borderBottom: '1px solid var(--border-subtle)', padding: '0 28px', height: 58, display: 'flex', alignItems: 'center' }}>
+          <div>
+            <div style={{ fontWeight: 700, fontSize: 19, color: 'var(--text-primary)' }}>{view.title}</div>
+            <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>Recall the question, then reveal the answer.</div>
           </div>
-          <FlashcardView
-            title={view.title}
-            cards={view.cards}
-            onBack={() => setView(view.parent)}
-            userId={userId}
-            color={view.color}
-            initialProgress={sectionProgress}
-            onProgressChange={updateProgress}
-            initialMode={view.mode || 'all'}
-            progressAvailable={progressLoaded}
-            profile={profile}
-            onUpgrade={() => setShowUpgradeModal(true)}
-          />
-        </main>
-      </div>
+        </div>
+        <FlashcardView
+          title={view.title}
+          cards={view.cards}
+          onBack={() => setView(view.parent)}
+          userId={userId}
+          color={view.color}
+          initialProgress={sectionProgress}
+          onProgressChange={updateProgress}
+          initialMode={view.mode || 'all'}
+          progressAvailable={progressLoaded}
+          profile={profile}
+          onUpgrade={() => setShowUpgradeModal(true)}
+        />
+      </FlashcardLayout>
     );
   }
 
@@ -617,52 +681,45 @@ export default function SmartRevision() {
 
     if (!categories.length) {
       return (
-        <div style={{ display: 'flex', height: '100vh', fontFamily: "'DM Sans','Segoe UI',sans-serif", background: '#F8FAFC', overflow: 'hidden' }}>
-          <IMUpilotSidebar />
-          <main style={{ flex: 1, overflowY: 'auto' }}>
-            <div style={{ padding: '0 28px', minHeight: 58, display: 'flex', alignItems: 'center', gap: 16, borderBottom: '1px solid #E2E8F0', background: '#fff' }}>
-              <button type="button" onClick={() => setView('DNS')} style={{ padding: '8px 12px', border: '1px solid #E2E8F0', borderRadius: 8, background: '#fff', color: '#334155', cursor: 'pointer' }}><ChevronLeft size={14} /> Library</button>
-              <strong style={{ color: '#0F172A' }}>{view.company}</strong>
-            </div>
-            <FlashcardView
-              title={view.company}
-              cards={view.companyCards}
-              onBack={() => setView('DNS')}
-              userId={userId}
-              color={getColor(view.company, 'DNS')}
-              initialProgress={sectionProgress}
-              onProgressChange={updateProgress}
-              progressAvailable={progressLoaded}
-              profile={profile}
-              onUpgrade={() => setShowUpgradeModal(true)}
-            />
-          </main>
-        </div>
+        <FlashcardLayout mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} bg="#F8FAFC">
+          <div style={{ padding: '0 28px', minHeight: 58, display: 'flex', alignItems: 'center', gap: 16, borderBottom: '1px solid #E2E8F0', background: '#fff' }}>
+            <button type="button" onClick={() => setView('DNS')} style={{ padding: '8px 12px', border: '1px solid #E2E8F0', borderRadius: 8, background: '#fff', color: '#334155', cursor: 'pointer' }}><ChevronLeft size={14} /> Library</button>
+            <strong style={{ color: '#0F172A' }}>{view.company}</strong>
+          </div>
+          <FlashcardView
+            title={view.company}
+            cards={view.companyCards}
+            onBack={() => setView('DNS')}
+            userId={userId}
+            color={getColor(view.company, 'DNS')}
+            initialProgress={sectionProgress}
+            onProgressChange={updateProgress}
+            progressAvailable={progressLoaded}
+            profile={profile}
+            onUpgrade={() => setShowUpgradeModal(true)}
+          />
+        </FlashcardLayout>
       );
     }
 
     return (
-      <div style={{ display: 'flex', height: '100vh', fontFamily: "'DM Sans','Segoe UI',sans-serif", background: 'var(--bg-primary)', overflow: 'hidden' }}>
-        <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
-        <IMUpilotSidebar />
-        <main style={{ flex: 1, overflowY: 'auto' }}>
-          <DeckGrid
-            decks={categories}
-            section="DNS"
-            title={view.company}
-            subtitle="Select a category to study"
-            onBack={() => setView('DNS')}
-            onSelect={cat => setView({
-              cards: cat.cards,
-              title: `${view.company} — ${cat.name}`,
-              color: getColor(view.company, 'DNS'),
-              parent: { type: 'dns-company', company: view.company, companyCards: view.companyCards },
-            })}
-            sectionProgress={sectionProgress}
-            progressAvailable={progressLoaded}
-          />
-        </main>
-      </div>
+      <FlashcardLayout mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} bg="var(--bg-primary)">
+        <DeckGrid
+          decks={categories}
+          section="DNS"
+          title={view.company}
+          subtitle="Select a category to study"
+          onBack={() => setView('DNS')}
+          onSelect={cat => setView({
+            cards: cat.cards,
+            title: `${view.company} — ${cat.name}`,
+            color: getColor(view.company, 'DNS'),
+            parent: { type: 'dns-company', company: view.company, companyCards: view.companyCards },
+          })}
+          sectionProgress={sectionProgress}
+          progressAvailable={progressLoaded}
+        />
+      </FlashcardLayout>
     );
   }
 
@@ -678,60 +735,53 @@ export default function SmartRevision() {
     // If no chapters, go straight to cards
     if (chapters.length === 0) {
       return (
-        <div style={{ display: 'flex', height: '100vh', fontFamily: "'DM Sans','Segoe UI',sans-serif", background: 'var(--bg-primary)', overflow: 'hidden' }}>
-          <IMUpilotSidebar />
-          <main style={{ flex: 1, overflowY: 'auto' }}>
-            <div style={{ background: 'var(--bg-elevated)', borderBottom: '1px solid var(--border-subtle)', padding: '0 28px', height: 58, display: 'flex', alignItems: 'center' }}>
-              <div style={{ fontWeight: 700, fontSize: 19, color: 'var(--text-primary)' }}>{view.subject}</div>
-            </div>
-            <FlashcardView
-              title={view.subject}
-              cards={view.subjectCards}
-              onBack={() => setView('IMUCET')}
-              userId={userId}
-              color={getColor(view.subject, 'IMUCET')}
-              initialProgress={sectionProgress}
-              onProgressChange={updateProgress}
-              progressAvailable={progressLoaded}
-              profile={profile}
-              onUpgrade={() => setShowUpgradeModal(true)}
-            />
-          </main>
-        </div>
+        <FlashcardLayout mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} bg="var(--bg-primary)">
+          <div style={{ background: 'var(--bg-elevated)', borderBottom: '1px solid var(--border-subtle)', padding: '0 28px', height: 58, display: 'flex', alignItems: 'center' }}>
+            <div style={{ fontWeight: 700, fontSize: 19, color: 'var(--text-primary)' }}>{view.subject}</div>
+          </div>
+          <FlashcardView
+            title={view.subject}
+            cards={view.subjectCards}
+            onBack={() => setView('IMUCET')}
+            userId={userId}
+            color={getColor(view.subject, 'IMUCET')}
+            initialProgress={sectionProgress}
+            onProgressChange={updateProgress}
+            progressAvailable={progressLoaded}
+            profile={profile}
+            onUpgrade={() => setShowUpgradeModal(true)}
+          />
+        </FlashcardLayout>
       );
     }
 
     return (
-      <div style={{ display: 'flex', height: '100vh', fontFamily: "'DM Sans','Segoe UI',sans-serif", background: 'var(--bg-primary)', overflow: 'hidden' }}>
-        <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
-        <IMUpilotSidebar />
-        <main style={{ flex: 1, overflowY: 'auto' }}>
-          <DeckGrid
-            decks={chapters}
-            section="IMUCET"
-            title={view.subject}
-            subtitle="Select a chapter to study"
-            onBack={() => setView('IMUCET')}
-            onSelect={ch => setView({
-              type: 'imucet-chapter',
-              subject: view.subject,
-              chapter: ch.name,
-              chapterCards: ch.cards,
-              subjectCards: view.subjectCards,
-            })}
-            ungroupedCards={ungroupedCards}
-            ungroupedLabel="Cards without a chapter"
-            onSelectUngrouped={() => setView({
-              cards: ungroupedCards,
-              title: `${view.subject} — Cards without a chapter`,
-              color: getColor(view.subject, 'IMUCET'),
-              parent: { type: 'imucet-subject', subject: view.subject, subjectCards: view.subjectCards },
-            })}
-            sectionProgress={sectionProgress}
-            progressAvailable={progressLoaded}
-          />
-        </main>
-      </div>
+      <FlashcardLayout mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} bg="var(--bg-primary)">
+        <DeckGrid
+          decks={chapters}
+          section="IMUCET"
+          title={view.subject}
+          subtitle="Select a chapter to study"
+          onBack={() => setView('IMUCET')}
+          onSelect={ch => setView({
+            type: 'imucet-chapter',
+            subject: view.subject,
+            chapter: ch.name,
+            chapterCards: ch.cards,
+            subjectCards: view.subjectCards,
+          })}
+          ungroupedCards={ungroupedCards}
+          ungroupedLabel="Cards without a chapter"
+          onSelectUngrouped={() => setView({
+            cards: ungroupedCards,
+            title: `${view.subject} — Cards without a chapter`,
+            color: getColor(view.subject, 'IMUCET'),
+            parent: { type: 'imucet-subject', subject: view.subject, subjectCards: view.subjectCards },
+          })}
+          sectionProgress={sectionProgress}
+          progressAvailable={progressLoaded}
+        />
+      </FlashcardLayout>
     );
   }
 
@@ -746,58 +796,52 @@ export default function SmartRevision() {
 
     if (topics.length === 0) {
       return (
-        <div style={{ display: 'flex', height: '100vh', fontFamily: "'DM Sans','Segoe UI',sans-serif", background: 'var(--bg-primary)', overflow: 'hidden' }}>
-          <IMUpilotSidebar />
-          <main style={{ flex: 1, overflowY: 'auto' }}>
-            <div style={{ background: 'var(--bg-elevated)', borderBottom: '1px solid var(--border-subtle)', padding: '0 28px', height: 58, display: 'flex', alignItems: 'center' }}>
-              <div style={{ fontWeight: 700, fontSize: 19, color: 'var(--text-primary)' }}>{view.subject} — {view.chapter}</div>
-            </div>
-            <FlashcardView
-              title={`${view.subject} — ${view.chapter}`}
-              cards={view.chapterCards}
-              onBack={() => setView(parent)}
-              userId={userId}
-              color={getColor(view.subject, 'IMUCET')}
-              initialProgress={sectionProgress}
-              onProgressChange={updateProgress}
-              progressAvailable={progressLoaded}
-              profile={profile}
-              onUpgrade={() => setShowUpgradeModal(true)}
-            />
-          </main>
-        </div>
+        <FlashcardLayout mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} bg="var(--bg-primary)">
+          <div style={{ background: 'var(--bg-elevated)', borderBottom: '1px solid var(--border-subtle)', padding: '0 28px', height: 58, display: 'flex', alignItems: 'center' }}>
+            <div style={{ fontWeight: 700, fontSize: 19, color: 'var(--text-primary)' }}>{view.subject} — {view.chapter}</div>
+          </div>
+          <FlashcardView
+            title={`${view.subject} — ${view.chapter}`}
+            cards={view.chapterCards}
+            onBack={() => setView(parent)}
+            userId={userId}
+            color={getColor(view.subject, 'IMUCET')}
+            initialProgress={sectionProgress}
+            onProgressChange={updateProgress}
+            progressAvailable={progressLoaded}
+            profile={profile}
+            onUpgrade={() => setShowUpgradeModal(true)}
+          />
+        </FlashcardLayout>
       );
     }
 
     return (
-      <div style={{ display: 'flex', height: '100vh', fontFamily: "'DM Sans','Segoe UI',sans-serif", background: 'var(--bg-primary)', overflow: 'hidden' }}>
-        <IMUpilotSidebar />
-        <main style={{ flex: 1, overflowY: 'auto' }}>
-          <DeckGrid
-            decks={topics}
-            section="IMUCET"
-            title={`${view.subject} — ${view.chapter}`}
-            subtitle="Select a topic to study"
-            onBack={() => setView(parent)}
-            onSelect={topic => setView({
-              cards: topic.cards,
-              title: `${view.subject} — ${view.chapter} — ${topic.name}`,
-              color: getColor(view.subject, 'IMUCET'),
-              parent: view,
-            })}
-            ungroupedCards={ungroupedCards}
-            ungroupedLabel="Cards without a topic"
-            onSelectUngrouped={() => setView({
-              cards: ungroupedCards,
-              title: `${view.subject} — ${view.chapter} — Cards without a topic`,
-              color: getColor(view.subject, 'IMUCET'),
-              parent: view,
-            })}
-            sectionProgress={sectionProgress}
-            progressAvailable={progressLoaded}
-          />
-        </main>
-      </div>
+      <FlashcardLayout mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} bg="var(--bg-primary)">
+        <DeckGrid
+          decks={topics}
+          section="IMUCET"
+          title={`${view.subject} — ${view.chapter}`}
+          subtitle="Select a topic to study"
+          onBack={() => setView(parent)}
+          onSelect={topic => setView({
+            cards: topic.cards,
+            title: `${view.subject} — ${view.chapter} — ${topic.name}`,
+            color: getColor(view.subject, 'IMUCET'),
+            parent: view,
+          })}
+          ungroupedCards={ungroupedCards}
+          ungroupedLabel="Cards without a topic"
+          onSelectUngrouped={() => setView({
+            cards: ungroupedCards,
+            title: `${view.subject} — ${view.chapter} — Cards without a topic`,
+            color: getColor(view.subject, 'IMUCET'),
+            parent: view,
+          })}
+          sectionProgress={sectionProgress}
+          progressAvailable={progressLoaded}
+        />
+      </FlashcardLayout>
     );
   }
 
@@ -809,41 +853,35 @@ export default function SmartRevision() {
     }));
     if (!groups.length && view.cards.length) {
       return (
-        <div style={{ display: 'flex', height: '100vh', fontFamily: "'DM Sans','Segoe UI',sans-serif", background: '#F8FAFC', overflow: 'hidden' }}>
-          <IMUpilotSidebar />
-          <main style={{ flex: 1, overflowY: 'auto' }}>
-            <div style={{ padding: '0 28px', minHeight: 58, display: 'flex', alignItems: 'center', gap: 16, borderBottom: '1px solid #E2E8F0', background: '#fff' }}>
-              <button type="button" onClick={() => setView(null)} style={{ padding: '8px 12px', border: '1px solid #E2E8F0', borderRadius: 8, background: '#fff', color: '#334155', cursor: 'pointer' }}><ChevronLeft size={14} /> Library</button>
-              <strong style={{ color: '#0F172A' }}>{view.section}</strong>
-            </div>
-            <FlashcardView title={view.section} cards={view.cards} onBack={() => setView(null)} userId={userId} color={getColor(view.section, view.section)} initialProgress={sectionProgress} onProgressChange={updateProgress} progressAvailable={progressLoaded} />
-          </main>
-        </div>
+        <FlashcardLayout mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} bg="#F8FAFC">
+          <div style={{ padding: '0 28px', minHeight: 58, display: 'flex', alignItems: 'center', gap: 16, borderBottom: '1px solid #E2E8F0', background: '#fff' }}>
+            <button type="button" onClick={() => setView(null)} style={{ padding: '8px 12px', border: '1px solid #E2E8F0', borderRadius: 8, background: '#fff', color: '#334155', cursor: 'pointer' }}><ChevronLeft size={14} /> Library</button>
+            <strong style={{ color: '#0F172A' }}>{view.section}</strong>
+          </div>
+          <FlashcardView title={view.section} cards={view.cards} onBack={() => setView(null)} userId={userId} color={getColor(view.section, view.section)} initialProgress={sectionProgress} onProgressChange={updateProgress} progressAvailable={progressLoaded} />
+        </FlashcardLayout>
       );
     }
     return (
-      <div style={{ display: 'flex', height: '100vh', fontFamily: "'DM Sans','Segoe UI',sans-serif", background: '#F8FAFC', overflow: 'hidden' }}>
-        <IMUpilotSidebar />
-        <main style={{ flex: 1, overflowY: 'auto' }}>
-          <DeckGrid
-            decks={groups}
-            section={view.section}
-            title={view.section}
-            subtitle="Browse available flashcards"
-            onBack={() => setView(null)}
-            sectionProgress={sectionProgress}
-            progressAvailable={progressLoaded}
-            onSelect={group => {
-              const chapters = [...new Set(group.cards.map(card => card.chapter).filter(Boolean))];
-              if (chapters.length) {
-                setView({ type: 'other-subject', section: view.section, subject: group.name, cards: group.cards });
-              } else {
-                setView({ cards: group.cards, title: group.name, color: getColor(group.name, view.section), parent: view });
-              }
-            }}
-          />
-        </main>
-      </div>
+      <FlashcardLayout mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} bg="#F8FAFC">
+        <DeckGrid
+          decks={groups}
+          section={view.section}
+          title={view.section}
+          subtitle="Browse available flashcards"
+          onBack={() => setView(null)}
+          sectionProgress={sectionProgress}
+          progressAvailable={progressLoaded}
+          onSelect={group => {
+            const chapters = [...new Set(group.cards.map(card => card.chapter).filter(Boolean))];
+            if (chapters.length) {
+              setView({ type: 'other-subject', section: view.section, subject: group.name, cards: group.cards });
+            } else {
+              setView({ cards: group.cards, title: group.name, color: getColor(group.name, view.section), parent: view });
+            }
+          }}
+        />
+      </FlashcardLayout>
     );
   }
 
@@ -854,135 +892,115 @@ export default function SmartRevision() {
       count: view.cards.filter(card => card.chapter === name).length,
     }));
     return (
-      <div style={{ display: 'flex', height: '100vh', fontFamily: "'DM Sans','Segoe UI',sans-serif", background: '#F8FAFC', overflow: 'hidden' }}>
-        <IMUpilotSidebar />
-        <main style={{ flex: 1, overflowY: 'auto' }}>
-          <DeckGrid
-            decks={chapters}
-            section={view.section}
-            title={view.subject}
-            subtitle="Choose a chapter to study"
-            onBack={() => setView({ type: 'other-section', section: view.section, cards: allCards.filter(card => (card.section || 'DNS') === view.section) })}
-            sectionProgress={sectionProgress}
-            progressAvailable={progressLoaded}
-            onSelect={chapter => setView({
-              cards: chapter.cards,
-              title: `${view.subject} — ${chapter.name}`,
-              color: getColor(view.subject, view.section),
-              parent: view,
-            })}
-          />
-        </main>
-      </div>
+      <FlashcardLayout mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} bg="#F8FAFC">
+        <DeckGrid
+          decks={chapters}
+          section={view.section}
+          title={view.subject}
+          subtitle="Choose a chapter to study"
+          onBack={() => setView({ type: 'other-section', section: view.section, cards: allCards.filter(card => (card.section || 'DNS') === view.section) })}
+          sectionProgress={sectionProgress}
+          progressAvailable={progressLoaded}
+          onSelect={chapter => setView({
+            cards: chapter.cards,
+            title: `${view.subject} — ${chapter.name}`,
+            color: getColor(view.subject, view.section),
+            parent: view,
+          })}
+        />
+      </FlashcardLayout>
     );
   }
 
   // DNS section
   if (view === 'DNS') {
-    const dnsReviewCards   = dnsCards.filter(c => sectionProgress[c.id] === 'didnt_know');
+    const dnsReviewCards = dnsCards.filter(c => sectionProgress[c.id] === 'didnt_know');
     const dnsBookmarkCards = dnsCards.filter(c => sectionProgress[c.id] === 'bookmarked');
     if (dnsCards.length && !dnsCompanies.length) {
       return (
-        <div style={{ display: 'flex', height: '100vh', fontFamily: "'DM Sans','Segoe UI',sans-serif", background: '#F8FAFC', overflow: 'hidden' }}>
-          <IMUpilotSidebar />
-          <main style={{ flex: 1, overflowY: 'auto' }}>
-            <div style={{ padding: '0 28px', minHeight: 58, display: 'flex', alignItems: 'center', gap: 16, borderBottom: '1px solid #E2E8F0', background: '#fff' }}>
-              <button type="button" onClick={() => setView(null)} style={{ padding: '8px 12px', border: '1px solid #E2E8F0', borderRadius: 8, background: '#fff', color: '#334155', cursor: 'pointer' }}><ChevronLeft size={14} /> Library</button>
-              <strong style={{ color: '#0F172A' }}>DNS Interview Prep</strong>
-            </div>
-            <FlashcardView title="DNS Interview Prep" cards={dnsCards} onBack={() => setView(null)} userId={userId} color={getColor('DNS', 'DNS')} initialProgress={sectionProgress} onProgressChange={updateProgress} progressAvailable={progressLoaded} profile={profile} onUpgrade={() => setShowUpgradeModal(true)} />
-          </main>
-        </div>
+        <FlashcardLayout mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} bg="#F8FAFC">
+          <div style={{ padding: '0 28px', minHeight: 58, display: 'flex', alignItems: 'center', gap: 16, borderBottom: '1px solid #E2E8F0', background: '#fff' }}>
+            <button type="button" onClick={() => setView(null)} style={{ padding: '8px 12px', border: '1px solid #E2E8F0', borderRadius: 8, background: '#fff', color: '#334155', cursor: 'pointer' }}><ChevronLeft size={14} /> Library</button>
+            <strong style={{ color: '#0F172A' }}>DNS Interview Prep</strong>
+          </div>
+          <FlashcardView title="DNS Interview Prep" cards={dnsCards} onBack={() => setView(null)} userId={userId} color={getColor('DNS', 'DNS')} initialProgress={sectionProgress} onProgressChange={updateProgress} progressAvailable={progressLoaded} profile={profile} onUpgrade={() => setShowUpgradeModal(true)} />
+        </FlashcardLayout>
       );
     }
     return (
-      <div style={{ display: 'flex', height: '100vh', fontFamily: "'DM Sans','Segoe UI',sans-serif", background: 'var(--bg-primary)', overflow: 'hidden' }}>
-        <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
-        <IMUpilotSidebar />
-        <main style={{ flex: 1, overflowY: 'auto' }}>
-          <DeckGrid
-            decks={dnsCompanies}
-            section="DNS"
-            title="DNS Interview Prep"
-            subtitle="Select a company to start practising"
-            onBack={() => setView(null)}
-            onSelect={deck => setView({ type: 'dns-company', company: deck.name, companyCards: deck.cards })}
-            reviewCount={dnsReviewCards.length}
-            bookmarkCount={dnsBookmarkCards.length}
-            onReview={progressLoaded ? () => setView({ cards: dnsCards, title: 'DNS — Review', color: 'var(--accent-danger)', parent: 'DNS', mode: 'review' }) : undefined}
-            onBookmarked={progressLoaded ? () => setView({ cards: dnsCards, title: 'DNS — Bookmarked', color: 'var(--accent-warning)', parent: 'DNS', mode: 'bookmarked' }) : undefined}
-            sectionProgress={sectionProgress}
-            progressAvailable={progressLoaded}
-          />
-        </main>
-      </div>
+      <FlashcardLayout mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} bg="var(--bg-primary)">
+        <DeckGrid
+          decks={dnsCompanies}
+          section="DNS"
+          title="DNS Interview Prep"
+          subtitle="Select a company to start practising"
+          onBack={() => setView(null)}
+          onSelect={deck => setView({ type: 'dns-company', company: deck.name, companyCards: deck.cards })}
+          reviewCount={dnsReviewCards.length}
+          bookmarkCount={dnsBookmarkCards.length}
+          onReview={progressLoaded ? () => setView({ cards: dnsCards, title: 'DNS — Review', color: 'var(--accent-danger)', parent: 'DNS', mode: 'review' }) : undefined}
+          onBookmarked={progressLoaded ? () => setView({ cards: dnsCards, title: 'DNS — Bookmarked', color: 'var(--accent-warning)', parent: 'DNS', mode: 'bookmarked' }) : undefined}
+          sectionProgress={sectionProgress}
+          progressAvailable={progressLoaded}
+        />
+      </FlashcardLayout>
     );
   }
 
   // IMUCET section
   if (view === 'IMUCET') {
-    const imucetReviewCards   = imucetCards.filter(c => sectionProgress[c.id] === 'didnt_know');
+    const imucetReviewCards = imucetCards.filter(c => sectionProgress[c.id] === 'didnt_know');
     const imucetBookmarkCards = imucetCards.filter(c => sectionProgress[c.id] === 'bookmarked');
     const ungroupedSubjectCards = imucetCards.filter(card => !(card.subject?.trim() || card.company?.trim()));
     if (imucetCards.length && !imucetSubjects.length) {
       return (
-        <div style={{ display: 'flex', height: '100vh', fontFamily: "'DM Sans','Segoe UI',sans-serif", background: '#F8FAFC', overflow: 'hidden' }}>
-          <IMUpilotSidebar />
-          <main style={{ flex: 1, overflowY: 'auto' }}>
-            <div style={{ padding: '0 28px', minHeight: 58, display: 'flex', alignItems: 'center', gap: 16, borderBottom: '1px solid #E2E8F0', background: '#fff' }}>
-              <button type="button" onClick={() => setView(null)} style={{ padding: '8px 12px', border: '1px solid #E2E8F0', borderRadius: 8, background: '#fff', color: '#334155', cursor: 'pointer' }}><ChevronLeft size={14} /> Library</button>
-              <strong style={{ color: '#0F172A' }}>IMUCET Prep</strong>
-            </div>
-            <FlashcardView title="IMUCET Prep" cards={imucetCards} onBack={() => setView(null)} userId={userId} color={getColor('IMUCET', 'IMUCET')} initialProgress={sectionProgress} onProgressChange={updateProgress} progressAvailable={progressLoaded} profile={profile} onUpgrade={() => setShowUpgradeModal(true)} />
-          </main>
-        </div>
+        <FlashcardLayout mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} bg="#F8FAFC">
+          <div style={{ padding: '0 28px', minHeight: 58, display: 'flex', alignItems: 'center', gap: 16, borderBottom: '1px solid #E2E8F0', background: '#fff' }}>
+            <button type="button" onClick={() => setView(null)} style={{ padding: '8px 12px', border: '1px solid #E2E8F0', borderRadius: 8, background: '#fff', color: '#334155', cursor: 'pointer' }}><ChevronLeft size={14} /> Library</button>
+            <strong style={{ color: '#0F172A' }}>IMUCET Prep</strong>
+          </div>
+          <FlashcardView title="IMUCET Prep" cards={imucetCards} onBack={() => setView(null)} userId={userId} color={getColor('IMUCET', 'IMUCET')} initialProgress={sectionProgress} onProgressChange={updateProgress} progressAvailable={progressLoaded} profile={profile} onUpgrade={() => setShowUpgradeModal(true)} />
+        </FlashcardLayout>
       );
     }
     return (
-      <div style={{ display: 'flex', height: '100vh', fontFamily: "'DM Sans','Segoe UI',sans-serif", background: 'var(--bg-primary)', overflow: 'hidden' }}>
-        <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
-        <IMUpilotSidebar />
-        <main style={{ flex: 1, overflowY: 'auto' }}>
-          <DeckGrid
-            decks={imucetSubjects}
-            section="IMUCET"
-            title="IMUCET Flashcards"
-            subtitle="Select a subject to start studying"
-            onBack={() => setView(null)}
-            onSelect={deck => setView({ type: 'imucet-subject', subject: deck.name, subjectCards: deck.cards })}
-            reviewCount={imucetReviewCards.length}
-            bookmarkCount={imucetBookmarkCards.length}
-            onReview={progressLoaded ? () => setView({ cards: imucetCards, title: 'IMUCET — Review', color: 'var(--accent-danger)', parent: 'IMUCET', mode: 'review' }) : undefined}
-            onBookmarked={progressLoaded ? () => setView({ cards: imucetCards, title: 'IMUCET — Bookmarked', color: 'var(--accent-warning)', parent: 'IMUCET', mode: 'bookmarked' }) : undefined}
-            ungroupedCards={ungroupedSubjectCards}
-            ungroupedLabel="Cards without a subject"
-            onSelectUngrouped={() => setView({
-              cards: ungroupedSubjectCards,
-              title: 'IMUCET — Cards without a subject',
-              color: getColor('IMUCET', 'IMUCET'),
-              parent: 'IMUCET',
-            })}
-            sectionProgress={sectionProgress}
-            progressAvailable={progressLoaded}
-          />
-        </main>
-      </div>
+      <FlashcardLayout mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} bg="var(--bg-primary)">
+        <DeckGrid
+          decks={imucetSubjects}
+          section="IMUCET"
+          title="IMUCET Flashcards"
+          subtitle="Select a subject to start studying"
+          onBack={() => setView(null)}
+          onSelect={deck => setView({ type: 'imucet-subject', subject: deck.name, subjectCards: deck.cards })}
+          reviewCount={imucetReviewCards.length}
+          bookmarkCount={imucetBookmarkCards.length}
+          onReview={progressLoaded ? () => setView({ cards: imucetCards, title: 'IMUCET — Review', color: 'var(--accent-danger)', parent: 'IMUCET', mode: 'review' }) : undefined}
+          onBookmarked={progressLoaded ? () => setView({ cards: imucetCards, title: 'IMUCET — Bookmarked', color: 'var(--accent-warning)', parent: 'IMUCET', mode: 'bookmarked' }) : undefined}
+          ungroupedCards={ungroupedSubjectCards}
+          ungroupedLabel="Cards without a subject"
+          onSelectUngrouped={() => setView({
+            cards: ungroupedSubjectCards,
+            title: 'IMUCET — Cards without a subject',
+            color: getColor('IMUCET', 'IMUCET'),
+            parent: 'IMUCET',
+          })}
+          sectionProgress={sectionProgress}
+          progressAvailable={progressLoaded}
+        />
+      </FlashcardLayout>
     );
   }
 
   return (
-    <div style={{ display: 'flex', height: '100vh', fontFamily: "'DM Sans','Segoe UI',sans-serif", background: '#F8FAFC', overflow: 'hidden' }}>
-      <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
-      <IMUpilotSidebar />
-      <main style={{ flex: 1, overflowY: 'auto' }}>
-        <div style={{ background: '#fff', borderBottom: '1px solid #E2E8F0', padding: '0 32px', minHeight: 72, display: 'flex', alignItems: 'center', position: 'sticky', top: 0, zIndex: 10 }}>
-          <div style={{ padding: '12px 0' }}>
-            <h1 style={{ margin: 0, fontWeight: 750, fontSize: 24, letterSpacing: '-0.035em', color: '#0F172A' }}>Flashcards</h1>
-            <div style={{ marginTop: 4, fontSize: 13, color: '#64748B' }}>Quick recall for concepts, formulas, definitions, and important facts.</div>
-          </div>
+    <FlashcardLayout mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} bg="#F8FAFC">
+      <div style={{ background: '#fff', borderBottom: '1px solid #E2E8F0', padding: '0 32px', minHeight: 72, display: 'flex', alignItems: 'center', position: 'sticky', top: 0, zIndex: 10 }}>
+        <div style={{ padding: '12px 0' }}>
+          <h1 style={{ margin: 0, fontWeight: 750, fontSize: 24, letterSpacing: '-0.035em', color: '#0F172A' }}>Flashcards</h1>
+          <div style={{ marginTop: 4, fontSize: 13, color: '#64748B' }}>Quick recall for concepts, formulas, definitions, and important facts.</div>
         </div>
+      </div>
 
-        <div style={{ width: '100%', maxWidth: 1180, margin: '0 auto', padding: '28px 24px 48px', boxSizing: 'border-box' }}>
+      <div style={{ width: '100%', maxWidth: 1180, margin: '0 auto', padding: 'clamp(12px, 4vw, 28px)', boxSizing: 'border-box' }}>
           {/* Locked cards top banner */}
           {!isPro(profile) && allCards.some(c => !c.is_free) && (
             <div
@@ -1109,13 +1127,12 @@ export default function SmartRevision() {
             </section>
           )}
         </div>
-      </main>
-      <UpgradeModal
-        isOpen={showUpgradeModal}
-        onClose={() => setShowUpgradeModal(false)}
-        title="Unlock All Flashcards"
-        subtitle="Upgrade to IMUpilot Pro to unlock complete DNS interview and IMUCET flashcards."
-      />
-    </div>
-  );
+        <UpgradeModal
+          isOpen={showUpgradeModal}
+          onClose={() => setShowUpgradeModal(false)}
+          title="Unlock All Flashcards"
+          subtitle="Upgrade to IMUpilot Pro to unlock complete DNS interview and IMUCET flashcards."
+        />
+      </FlashcardLayout>
+    );
 }

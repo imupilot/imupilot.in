@@ -2046,6 +2046,304 @@ function Users({ toast }) {
   );
 }
 
+function Interviews({ toast }) {
+  const [bookings, setBookings] = useState([]);
+  const [feedbacksMap, setFeedbacksMap] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [feedbackModal, setFeedbackModal] = useState(null);
+  const [form, setForm] = useState({
+    communication: 8,
+    subject_knowledge: 8,
+    confidence: 8,
+    problem_solving: 8,
+    overall: 8,
+    remarks: "",
+  });
+  const [savingFeedback, setSavingFeedback] = useState(false);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      let merged = [];
+
+      // 1. Try joined query first
+      const { data: joinedData, error: joinErr } = await supabase
+        .from("interview_bookings")
+        .select(`
+          *,
+          profiles (
+            full_name,
+            email
+          )
+        `)
+        .order("created_at", { ascending: false });
+
+      if (!joinErr && joinedData && joinedData.length > 0) {
+        merged = joinedData.map((b) => ({
+          ...b,
+          profile: Array.isArray(b.profiles) ? b.profiles[0] : b.profiles,
+        }));
+      } else {
+        // Fallback: Two separate queries
+        const { data: bData, error: bErr } = await supabase
+          .from("interview_bookings")
+          .select("*")
+          .order("created_at", { ascending: false });
+
+        if (bErr) {
+          console.warn("Could not query interview_bookings directly:", bErr);
+        }
+
+        if (bData && bData.length > 0) {
+          const userIds = [...new Set(bData.map((b) => b.user_id).filter(Boolean))];
+          let profilesData = [];
+          if (userIds.length > 0) {
+            const { data: profiles } = await supabase
+              .from("profiles")
+              .select("id, full_name, email")
+              .in("id", userIds);
+            profilesData = profiles || [];
+          }
+
+          merged = bData.map((b) => ({
+            ...b,
+            profile: profilesData.find((p) => p.id === b.user_id),
+          }));
+        } else {
+          merged = [];
+        }
+      }
+
+      setBookings(merged);
+
+      // 2. Fetch existing feedback
+      const { data: fData } = await supabase.from("interview_feedback").select("*");
+      if (fData) {
+        const fMap = {};
+        fData.forEach((f) => { fMap[f.booking_id] = f; });
+        setFeedbacksMap(fMap);
+      }
+    } catch (e) {
+      console.error("Failed to load interview data in admin:", e);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  async function updateStatus(id, newStatus) {
+    try {
+      const { error } = await supabase
+        .from("interview_bookings")
+        .update({ status: newStatus })
+        .eq("id", id);
+
+      if (!error) {
+        setBookings((prev) => prev.map((b) => (b.id === id ? { ...b, status: newStatus } : b)));
+        toast(`Status updated to ${newStatus}`);
+      } else {
+        console.error("Update status error:", error);
+        toast("Failed to update status");
+      }
+    } catch (e) {
+      toast("Error updating status");
+    }
+  }
+
+  function openFeedbackModal(booking) {
+    const existing = feedbacksMap[booking.id];
+    setFeedbackModal(booking);
+    if (existing) {
+      setForm({
+        communication: existing.communication || 8,
+        subject_knowledge: existing.subject_knowledge || 8,
+        confidence: existing.confidence || 8,
+        problem_solving: existing.problem_solving || 8,
+        overall: existing.overall || 8,
+        remarks: existing.remarks || "",
+      });
+    } else {
+      setForm({
+        communication: 8,
+        subject_knowledge: 8,
+        confidence: 8,
+        problem_solving: 8,
+        overall: 8,
+        remarks: "",
+      });
+    }
+  }
+
+  async function saveFeedback() {
+    if (!feedbackModal) return;
+    setSavingFeedback(true);
+    const existing = feedbacksMap[feedbackModal.id];
+
+    try {
+      const payload = {
+        booking_id: feedbackModal.id,
+        user_id: feedbackModal.user_id,
+        communication: Number(form.communication),
+        subject_knowledge: Number(form.subject_knowledge),
+        confidence: Number(form.confidence),
+        problem_solving: Number(form.problem_solving),
+        overall: Number(form.overall),
+        remarks: form.remarks,
+      };
+
+      if (existing?.id) {
+        await supabase.from("interview_feedback").update(payload).eq("id", existing.id);
+      } else {
+        await supabase.from("interview_feedback").insert([payload]);
+      }
+
+      toast("Feedback saved successfully!");
+      setFeedbackModal(null);
+      load();
+    } catch (err) {
+      console.error("Save feedback error:", err);
+      toast("Failed to save feedback");
+    } finally {
+      setSavingFeedback(false);
+    }
+  }
+
+  return (
+    <div>
+      <div style={S.pageTitle}>Mock Interviews</div>
+      <div style={S.pageSub}>{bookings.length} total interview bookings</div>
+
+      {feedbackModal && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div style={{ ...S.card, width: 440, maxWidth: "90vw", maxHeight: "90vh", overflowY: "auto", margin: 0, padding: 24 }}>
+            <div style={S.cardHeader}>
+              <div style={S.cardTitle}>Add Interview Feedback</div>
+              <button style={{ ...S.btn(), padding: "2px 8px" }} onClick={() => setFeedbackModal(null)}>✕</button>
+            </div>
+            <div style={{ fontSize: 13, color: "#6b7280", marginBottom: 16 }}>
+              Student: <b>{feedbackModal.profile?.full_name || "Student"}</b>
+            </div>
+
+            {[
+              { key: "communication", label: "Communication (1–10)" },
+              { key: "subject_knowledge", label: "Subject Knowledge (1–10)" },
+              { key: "confidence", label: "Confidence (1–10)" },
+              { key: "problem_solving", label: "Problem Solving (1–10)" },
+              { key: "overall", label: "Overall Score (1–10)" },
+            ].map(({ key, label }) => (
+              <div key={key} style={{ marginBottom: 12 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 4 }}>
+                  <label style={S.label}>{label}</label>
+                  <span style={{ fontWeight: 600 }}>{form[key]} / 10</span>
+                </div>
+                <input
+                  type="range"
+                  min="1"
+                  max="10"
+                  value={form[key]}
+                  onChange={(e) => setForm({ ...form, [key]: Number(e.target.value) })}
+                  style={{ width: "100%", cursor: "pointer" }}
+                />
+              </div>
+            ))}
+
+            <label style={{ ...S.label, marginTop: 12 }}>Remarks & Guidance</label>
+            <textarea
+              style={{ ...S.input, height: 80, resize: "vertical", fontFamily: "inherit" }}
+              placeholder="Strengths, weaknesses, suggestions for real IMUCET interview..."
+              value={form.remarks}
+              onChange={(e) => setForm({ ...form, remarks: e.target.value })}
+            />
+
+            <div style={{ display: "flex", gap: 8, marginTop: 16 }}>
+              <button style={S.btn("primary")} onClick={saveFeedback} disabled={savingFeedback}>
+                {savingFeedback ? "Saving..." : "Save Feedback"}
+              </button>
+              <button style={S.btn()} onClick={() => setFeedbackModal(null)}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div style={S.card}>
+        <div style={S.cardHeader}>
+          <div style={S.cardTitle}>All Bookings</div>
+          <button style={{ ...S.btn("primary"), ...S.btnSm }} onClick={load}>↺ Refresh</button>
+        </div>
+
+        {loading ? (
+          <div style={S.empty}>Loading bookings...</div>
+        ) : bookings.length === 0 ? (
+          <div style={S.empty}>No interview bookings found.</div>
+        ) : (
+          <div style={{ overflowX: "auto" }}>
+            <table style={S.table}>
+              <thead>
+                <tr>
+                  <th style={S.th}>Student name / email</th>
+                  <th style={S.th}>Interview #</th>
+                  <th style={S.th}>Date</th>
+                  <th style={S.th}>Time</th>
+                  <th style={S.th}>Notes</th>
+                  <th style={S.th}>Status</th>
+                  <th style={S.th}>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {bookings.map((b, idx) => {
+                  const student = b.profile;
+                  const fb = feedbacksMap[b.id];
+                  const isCompleted = b.status?.toLowerCase() === "completed";
+
+                  return (
+                    <tr key={b.id || idx}>
+                      <td style={S.td}>
+                        <div style={{ fontWeight: 500 }}>{student?.full_name || "Student"}</div>
+                        <div style={{ fontSize: 11, color: "#6b7280" }}>{student?.email || b.user_id?.slice(0, 8)}</div>
+                      </td>
+                      <td style={S.td}>#{bookings.length - idx}</td>
+                      <td style={S.td}>{b.preferred_date || "—"}</td>
+                      <td style={S.td}>{b.preferred_time || "—"}</td>
+                      <td style={{ ...S.td, maxWidth: 180, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }} title={b.notes || "None"}>
+                        {b.notes || "None"}
+                      </td>
+                      <td style={S.td}>
+                        <select
+                          style={{ ...S.input, width: 120, marginBottom: 0, padding: "4px 8px", fontSize: 12 }}
+                          value={b.status || "requested"}
+                          onChange={(e) => updateStatus(b.id, e.target.value)}
+                        >
+                          <option value="requested">Requested</option>
+                          <option value="confirmed">Confirmed</option>
+                          <option value="completed">Completed</option>
+                          <option value="cancelled">Cancelled</option>
+                        </select>
+                      </td>
+                      <td style={S.td}>
+                        {isCompleted && (
+                          <button
+                            style={{ ...S.btn("primary"), ...S.btnSm, fontSize: 11, padding: "3px 8px" }}
+                            onClick={() => openFeedbackModal(b)}
+                          >
+                            {fb ? "Edit Feedback" : "Add Feedback"}
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function Analytics() {
   const [attempts, setAttempts] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -2201,6 +2499,7 @@ export default function Admin() {
 
   const nav = [
     { id: "dashboard", label: "Dashboard", adminOnly: true },
+    { id: "interviews", label: "Interviews", adminOnly: true },
     { id: "questions", label: "Questions" },
     { id: "mockquestions", label: "Mock Questions" },
     { id: "flashcards", label: "Flashcards" },
@@ -2211,6 +2510,7 @@ export default function Admin() {
 
   const pages = {
     dashboard: <Dashboard questions={questions} flashcards={flashcards} users={users} />,
+    interviews: <Interviews toast={toast} />,
     questions: <Questions toast={toast} />,
     mockquestions: <MockQuestions toast={toast} role={role} />,
     flashcards: <Flashcards toast={toast} />,

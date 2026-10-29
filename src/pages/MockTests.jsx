@@ -16,6 +16,7 @@ const mockTests = Array.from({ length: 19 }, (_, i) => ({
 
 export default function MockTests() {
   const navigate = useNavigate();
+  const [mobileOpen, setMobileOpen] = useState(false);
   const [allAttempts, setAllAttempts] = useState([]);
   const [expandedTestId, setExpandedTestId] = useState(null);
   const [setsData, setSetsData] = useState([]);
@@ -217,9 +218,25 @@ export default function MockTests() {
   return (
     <div style={{ display: 'flex', height: '100vh', fontFamily: "'DM Sans','Segoe UI',sans-serif", background: 'var(--bg-primary)', overflow: 'hidden' }}>
       <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
-      <IMUpilotSidebar />
+      <IMUpilotSidebar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
 
-      <main style={{ flex: 1, overflowY: 'auto' }}>
+      <main style={{ flex: 1, minWidth: 0, overflowX: 'hidden', overflowY: 'auto' }}>
+        {/* Mobile topbar */}
+        <div style={{
+          display: 'none', // hidden on desktop via CSS
+          position: 'sticky', top: 0, zIndex: 30,
+          background: '#FFFFFF',
+          borderBottom: '1px solid #E2E8F0',
+          padding: '12px 16px',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }} className="mobile-topbar">
+          <span style={{ fontWeight: 700, fontSize: 18, color: '#0F172A' }}>IMUpilot</span>
+          <button onClick={() => setMobileOpen(true)} style={{
+            background: 'none', border: 'none', cursor: 'pointer',
+            color: '#0F172A', fontSize: 22
+          }}>☰</button>
+        </div>
 
         {/* Topbar */}
         <div style={{ background: 'var(--bg-elevated)', borderBottom: '1px solid var(--border-subtle)', padding: '0 28px', height: 58, display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 10 }}>
@@ -229,7 +246,7 @@ export default function MockTests() {
           </div>
         </div>
 
-        <div style={{ padding: '28px' }}>
+        <div style={{ padding: 'clamp(12px, 4vw, 28px)' }}>
 
           {/* Info banner */}
           <div style={{ background: 'var(--accent-navy)', borderRadius: 16, padding: '20px 24px', marginBottom: 24, display: 'flex', alignItems: 'center', gap: 20 }}>

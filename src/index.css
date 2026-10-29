@@ -1717,3 +1717,12 @@ body {
     animation: none;
   }
 }
+
+/* Mobile topbar navbar */
+.mobile-topbar { display: none !important; }
+@media (max-width: 767px) {
+  .mobile-topbar { display: flex !important; }
+}
+@media (min-width: 768px) {
+  .mobile-close-btn { display: none !important; }
+}

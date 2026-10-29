@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import MathText from '../components/MathText';
 import { LogoIcon } from '../components/Icons';
+import IMUpilotSidebar from '../components/IMUpilotSidebar';
 
 const supabase = createClient(
   import.meta.env.VITE_SUPABASE_URL,
@@ -19,7 +20,7 @@ function createChapters(subjectId, classLevel, names, orderOffset = 0) {
 
 const SUBJECTS = [
   {
-    id: 'Physics', label: 'Physics', color: 'var(--accent-info)', bg: 'var(--accent-info-subtle)', icon: '⚡',
+    id: 'Physics', label: 'Physics', color: '#0F172A', bg: '#F1F5F9', icon: '⚡',
     chapters: [
       ...createChapters('Physics', 'XI', [
         'Units and Measurements',
@@ -56,7 +57,7 @@ const SUBJECTS = [
     ],
   },
   {
-    id: 'Chemistry', label: 'Chemistry', color: 'var(--accent-success)', bg: 'var(--accent-success-subtle)', icon: '🧪',
+    id: 'Chemistry', label: 'Chemistry', color: '#0F172A', bg: '#F1F5F9', icon: '🧪',
     chapters: [
       ...createChapters('Chemistry', 'XI', [
         'Some Basic Concepts of Chemistry',
@@ -84,7 +85,7 @@ const SUBJECTS = [
     ],
   },
   {
-    id: 'Mathematics', label: 'Mathematics', color: 'var(--accent-warning)', bg: 'var(--accent-warning-subtle)', icon: '📐',
+    id: 'Mathematics', label: 'Mathematics', color: '#0F172A', bg: '#F1F5F9', icon: '📐',
     chapters: [
       ...createChapters('Mathematics', 'XI', [
         'Sets',
@@ -120,7 +121,7 @@ const SUBJECTS = [
     ],
   },
   {
-    id: 'English', label: 'English', color: 'var(--accent-primary)', bg: 'var(--accent-primary-subtle)', icon: '📝',
+    id: 'English', label: 'English', color: '#0F172A', bg: '#F1F5F9', icon: '📝',
     chapters: createChapters('English', null, [
       'Grammar',
       'Vocabulary',
@@ -133,7 +134,7 @@ const SUBJECTS = [
     ]),
   },
   {
-    id: 'General Aptitude', label: 'General Aptitude', color: 'var(--accent-danger)', bg: 'var(--accent-danger-subtle)', icon: '🧠',
+    id: 'General Aptitude', label: 'General Aptitude', color: '#0F172A', bg: '#F1F5F9', icon: '🧠',
     chapters: createChapters('General Aptitude', null, [
       'Quantitative Aptitude',
       'Numerical Ability',
@@ -269,50 +270,66 @@ function formatTime(seconds) {
 }
 
 // ─── Subject Selection ────────────────────────────────────────────────────────
-function SubjectSelect({ onSelect }) {
+function SubjectSelect({ onSelect, mobileOpen, setMobileOpen }) {
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', fontFamily: "'DM Sans','Segoe UI',sans-serif" }}>
-      <div style={{ background: 'var(--bg-elevated)', borderBottom: '1px solid var(--border-subtle)', padding: '0 32px', height: 60, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ display: 'flex', color: 'var(--accent-navy, #0F172A)' }}>
-            <LogoIcon />
-          </span>
-          <span style={{ fontWeight: 800, fontSize: 16, color: 'var(--accent-navy, #0F172A)' }}>IMUPilot</span>
+    <div style={{ display: 'flex', height: '100vh', background: '#F8FAFC', overflow: 'hidden' }}>
+      <IMUpilotSidebar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
+      <main style={{ flex: 1, minWidth: 0, overflowY: 'auto' }}>
+        {/* Mobile topbar */}
+        <div style={{
+          display: 'none',
+          position: 'sticky', top: 0, zIndex: 30,
+          background: '#FFFFFF',
+          borderBottom: '1px solid #E2E8F0',
+          padding: '12px 16px',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }} className="mobile-topbar">
+          <span style={{ fontWeight: 700, fontSize: 18, color: '#0F172A' }}>IMUpilot</span>
+          <button onClick={() => setMobileOpen(true)} style={{
+            background: 'none', border: 'none', cursor: 'pointer',
+            color: '#0F172A', fontSize: 22
+          }}>☰</button>
         </div>
-        <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--text-primary)' }}>Sectional Tests</div>
-        <div style={{ width: 80 }} />
-      </div>
 
-      <div style={{ maxWidth: 720, margin: '0 auto', padding: '48px 24px' }}>
-        <div style={{ marginBottom: 36, textAlign: 'center' }}>
-          <div style={{ fontWeight: 800, fontSize: 28, color: 'var(--text-primary)', letterSpacing: '-0.5px', marginBottom: 8 }}>Choose a Subject</div>
-          <div style={{ fontSize: 14, color: 'var(--text-secondary)' }}>Select a subject to practice chapter-wise questions</div>
+        {/* Standard Page Topbar */}
+        <div style={{ background: '#FFFFFF', borderBottom: '1px solid #E2E8F0', padding: '0 28px', height: 58, display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 20 }}>
+          <div style={{ fontWeight: 700, fontSize: 18, color: '#0F172A', letterSpacing: '-0.02em' }}>
+            Sectional Tests
+          </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 16 }}>
-          {SUBJECTS.map(sub => (
-            <div key={sub.id} onClick={() => onSelect(sub)}
-              style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)', borderRadius: 18, padding: '28px 20px', cursor: 'pointer', textAlign: 'center', transition: 'all 0.2s' }}
-              onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.08)'; e.currentTarget.style.borderColor = sub.color; }}
-              onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.borderColor = 'var(--border-subtle)'; }}
-            >
-              <div style={{ width: 56, height: 56, borderRadius: 16, background: sub.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px', fontSize: 26 }}>
-                {sub.icon}
+        <div style={{ maxWidth: 720, margin: '0 auto', padding: '48px 24px' }}>
+          <div style={{ marginBottom: 36, textAlign: 'center' }}>
+            <div style={{ fontWeight: 800, fontSize: 28, color: '#0F172A', letterSpacing: '-0.5px', marginBottom: 8 }}>Choose a Subject</div>
+            <div style={{ fontSize: 14, color: '#64748B' }}>Select a subject to practice chapter-wise questions</div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 16 }}>
+            {SUBJECTS.map(sub => (
+              <div key={sub.id} onClick={() => onSelect(sub)}
+                style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: 18, padding: '28px 20px', cursor: 'pointer', textAlign: 'center', transition: 'all 0.2s' }}
+                onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.08)'; e.currentTarget.style.borderColor = '#0F172A'; }}
+                onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.borderColor = '#E2E8F0'; }}
+              >
+                <div style={{ width: 56, height: 56, borderRadius: 16, background: '#F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px', fontSize: 26 }}>
+                  {sub.icon}
+                </div>
+                <div style={{ fontWeight: 700, fontSize: 15, color: '#0F172A', marginBottom: 6 }}>{sub.label}</div>
+                <div style={{ fontSize: 12, color: '#0F172A', fontWeight: 600, background: '#F1F5F9', padding: '3px 12px', borderRadius: 999, display: 'inline-block' }}>
+                  Select →
+                </div>
               </div>
-              <div style={{ fontWeight: 700, fontSize: 15, color: 'var(--text-primary)', marginBottom: 6 }}>{sub.label}</div>
-              <div style={{ fontSize: 12, color: sub.color, fontWeight: 600, background: sub.bg, padding: '3px 12px', borderRadius: 999, display: 'inline-block' }}>
-                Select →
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }
 
 // ─── Chapter Selection ────────────────────────────────────────────────────────
-function ChapterSelect({ subject, onSelect, onBack }) {
+function ChapterSelect({ subject, onSelect, onBack, mobileOpen, setMobileOpen }) {
   const [chapters, setChapters] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -361,66 +378,87 @@ function ChapterSelect({ subject, onSelect, onBack }) {
   }, {});
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', fontFamily: "'DM Sans','Segoe UI',sans-serif" }}>
-      <div style={{ background: 'var(--bg-elevated)', borderBottom: '1px solid var(--border-subtle)', padding: '0 32px', height: 60, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <button onClick={onBack} style={{ background: 'none', border: '1px solid var(--border-subtle)', borderRadius: 8, padding: '7px 16px', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)', fontFamily: 'inherit' }}>
-          ← Back
-        </button>
-        <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--text-primary)' }}>{subject.label}</div>
-        <div style={{ width: 80 }} />
-      </div>
-
-      <div style={{ maxWidth: 720, margin: '0 auto', padding: '48px 24px' }}>
-        <div style={{ marginBottom: 32, display: 'flex', alignItems: 'center', gap: 14 }}>
-          <div style={{ width: 52, height: 52, borderRadius: 14, background: subject.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24 }}>
-            {subject.icon}
-          </div>
-          <div>
-            <div style={{ fontWeight: 800, fontSize: 22, color: 'var(--text-primary)' }}>{subject.label}</div>
-            <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>Select a chapter to begin</div>
-          </div>
+    <div style={{ display: 'flex', height: '100vh', background: '#F8FAFC', overflow: 'hidden' }}>
+      <IMUpilotSidebar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
+      <main style={{ flex: 1, minWidth: 0, overflowY: 'auto' }}>
+        {/* Mobile topbar */}
+        <div style={{
+          display: 'none',
+          position: 'sticky', top: 0, zIndex: 30,
+          background: '#FFFFFF',
+          borderBottom: '1px solid #E2E8F0',
+          padding: '12px 16px',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }} className="mobile-topbar">
+          <span style={{ fontWeight: 700, fontSize: 18, color: '#0F172A' }}>IMUpilot</span>
+          <button onClick={() => setMobileOpen(true)} style={{
+            background: 'none', border: 'none', cursor: 'pointer',
+            color: '#0F172A', fontSize: 22
+          }}>☰</button>
         </div>
 
-        {loading ? (
-          <div style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: 40 }}>Loading chapters...</div>
-        ) : error ? (
-          <div role="alert" style={{ textAlign: 'center', color: 'var(--accent-danger)', padding: 40 }}>{error}</div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-            {Object.entries(chapterGroups).map(([classLevel, groupChapters]) => (
-              <section key={classLevel || 'sections'}>
-                {classLevel && <h3 style={{ margin: '0 0 10px', color: 'var(--text-secondary)', fontSize: 12, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Class {classLevel}</h3>}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                  {groupChapters.map((ch, i) => (
-                    <div key={ch.id} onClick={() => { if (ch.count > 0) onSelect(ch); }}
-                      style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)', borderRadius: 14, padding: '16px 20px', cursor: ch.count > 0 ? 'pointer' : 'default', display: 'flex', alignItems: 'center', gap: 16, transition: 'all 0.15s', opacity: ch.count > 0 ? 1 : 0.75 }}
-                      onMouseEnter={e => { if (ch.count > 0) { e.currentTarget.style.borderColor = subject.color; e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.06)'; } }}
-                      onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-subtle)'; e.currentTarget.style.boxShadow = 'none'; }}
-                    >
-                      <div style={{ width: 36, height: 36, borderRadius: 10, background: subject.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 13, color: subject.color, flexShrink: 0 }}>
-                        {i + 1}
-                      </div>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontWeight: 600, fontSize: 14, color: 'var(--text-primary)' }}>{ch.name}</div>
-                        <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2 }}>{ch.count > 0 ? `${ch.count} questions` : 'No questions yet'}</div>
-                      </div>
-                      <div style={{ fontWeight: 700, fontSize: 13, color: ch.count > 0 ? subject.color : 'var(--text-secondary)' }}>
-                        {ch.count > 0 ? 'Start →' : 'Coming soon'}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </section>
-            ))}
+        {/* Standard Page Topbar */}
+        <div style={{ background: '#FFFFFF', borderBottom: '1px solid #E2E8F0', padding: '0 28px', height: 58, display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 20 }}>
+          <button onClick={onBack} style={{ background: 'none', border: '1px solid #E2E8F0', borderRadius: 8, padding: '7px 16px', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: '#475569', fontFamily: 'inherit' }}>
+            ← Back to Subjects
+          </button>
+          <div style={{ fontWeight: 700, fontSize: 15, color: '#0F172A' }}>{subject.label}</div>
+          <div style={{ width: 80 }} />
+        </div>
+
+        <div style={{ maxWidth: 720, margin: '0 auto', padding: '48px 24px' }}>
+          <div style={{ marginBottom: 32, display: 'flex', alignItems: 'center', gap: 14 }}>
+            <div style={{ width: 52, height: 52, borderRadius: 14, background: '#F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24 }}>
+              {subject.icon}
+            </div>
+            <div>
+              <div style={{ fontWeight: 800, fontSize: 22, color: '#0F172A' }}>{subject.label}</div>
+              <div style={{ fontSize: 13, color: '#64748B' }}>Select a chapter to begin</div>
+            </div>
           </div>
-        )}
-      </div>
+
+          {loading ? (
+            <div style={{ textAlign: 'center', color: '#64748B', padding: 40 }}>Loading chapters...</div>
+          ) : error ? (
+            <div role="alert" style={{ textAlign: 'center', color: '#0F172A', padding: 40 }}>{error}</div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+              {Object.entries(chapterGroups).map(([classLevel, groupChapters]) => (
+                <section key={classLevel || 'sections'}>
+                  {classLevel && <h3 style={{ margin: '0 0 10px', color: '#64748B', fontSize: 12, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Class {classLevel}</h3>}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    {groupChapters.map((ch, i) => (
+                      <div key={ch.id} onClick={() => { if (ch.count > 0) onSelect(ch); }}
+                        style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: 14, padding: '16px 20px', cursor: ch.count > 0 ? 'pointer' : 'default', display: 'flex', alignItems: 'center', gap: 16, transition: 'all 0.15s', opacity: ch.count > 0 ? 1 : 0.75 }}
+                        onMouseEnter={e => { if (ch.count > 0) { e.currentTarget.style.borderColor = '#0F172A'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.06)'; } }}
+                        onMouseLeave={e => { e.currentTarget.style.borderColor = '#E2E8F0'; e.currentTarget.style.boxShadow = 'none'; }}
+                      >
+                        <div style={{ width: 36, height: 36, borderRadius: 10, background: '#F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 13, color: '#0F172A', flexShrink: 0 }}>
+                          {i + 1}
+                        </div>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontWeight: 600, fontSize: 14, color: '#0F172A' }}>{ch.name}</div>
+                          <div style={{ fontSize: 12, color: '#64748B', marginTop: 2 }}>{ch.count > 0 ? `${ch.count} questions` : 'No questions yet'}</div>
+                        </div>
+                        <div style={{ fontWeight: 700, fontSize: 13, color: ch.count > 0 ? '#0F172A' : '#64748B' }}>
+                          {ch.count > 0 ? 'Start →' : 'Coming soon'}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              ))}
+            </div>
+          )}
+        </div>
+      </main>
     </div>
   );
 }
 
 // ─── Topic Selection ──────────────────────────────────────────────────────────
-function TopicSelect({ subject, chapter, onSelect, onBack }) {
+function TopicSelect({ subject, chapter, onSelect, onBack, mobileOpen, setMobileOpen }) {
   const [topics, setTopics] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -428,7 +466,7 @@ function TopicSelect({ subject, chapter, onSelect, onBack }) {
 
   useEffect(() => {
     let active = true;
-    async function fetchTopicCounts() {
+    async function fetchTopics() {
       const { data, error: queryError } = await supabase
         .from('questions')
         .select('topic')
@@ -453,7 +491,7 @@ function TopicSelect({ subject, chapter, onSelect, onBack }) {
       })).sort((a, b) => a.order - b.order));
       setLoading(false);
     }
-    fetchTopicCounts().catch(queryError => {
+    fetchTopics().catch(queryError => {
       console.error('Unable to load topic question counts.', queryError);
       if (active) {
         setError(queryError.message || 'Unable to load topic counts. Please try again.');
@@ -464,53 +502,74 @@ function TopicSelect({ subject, chapter, onSelect, onBack }) {
   }, [chapter.name, curriculumTopics, subject.id]);
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', fontFamily: "'DM Sans','Segoe UI',sans-serif" }}>
-      <div style={{ background: 'var(--bg-elevated)', borderBottom: '1px solid var(--border-subtle)', padding: '0 32px', height: 60, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <button onClick={onBack} style={{ background: 'none', border: '1px solid var(--border-subtle)', borderRadius: 8, padding: '7px 16px', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)', fontFamily: 'inherit' }}>
-          ← Back
-        </button>
-        <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--text-primary)' }}>{subject.label} · {chapter.name}</div>
-        <div style={{ width: 80 }} />
-      </div>
-
-      <div style={{ maxWidth: 720, margin: '0 auto', padding: '48px 24px' }}>
-        <div style={{ marginBottom: 32, display: 'flex', alignItems: 'center', gap: 14 }}>
-          <div style={{ width: 52, height: 52, borderRadius: 14, background: subject.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24 }}>
-            {subject.icon}
-          </div>
-          <div>
-            <div style={{ fontWeight: 800, fontSize: 22, color: 'var(--text-primary)' }}>{chapter.name}</div>
-            <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>Choose a topic · IMUPilot-organized categories, not an official IMU topic list</div>
-          </div>
+    <div style={{ display: 'flex', height: '100vh', background: '#F8FAFC', overflow: 'hidden' }}>
+      <IMUpilotSidebar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
+      <main style={{ flex: 1, minWidth: 0, overflowY: 'auto' }}>
+        {/* Mobile topbar */}
+        <div style={{
+          display: 'none',
+          position: 'sticky', top: 0, zIndex: 30,
+          background: '#FFFFFF',
+          borderBottom: '1px solid #E2E8F0',
+          padding: '12px 16px',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }} className="mobile-topbar">
+          <span style={{ fontWeight: 700, fontSize: 18, color: '#0F172A' }}>IMUpilot</span>
+          <button onClick={() => setMobileOpen(true)} style={{
+            background: 'none', border: 'none', cursor: 'pointer',
+            color: '#0F172A', fontSize: 22
+          }}>☰</button>
         </div>
 
-        {loading ? (
-          <div style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: 40 }}>Loading topics...</div>
-        ) : error ? (
-          <div role="alert" style={{ textAlign: 'center', color: 'var(--accent-danger)', padding: 40 }}>{error}</div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {topics.map((topic, index) => (
-              <div key={topic.id} onClick={() => { if (topic.count > 0) onSelect(topic); }}
-                style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)', borderRadius: 14, padding: '16px 20px', cursor: topic.count > 0 ? 'pointer' : 'default', display: 'flex', alignItems: 'center', gap: 16, transition: 'all 0.15s', opacity: topic.count > 0 ? 1 : 0.75 }}
-                onMouseEnter={e => { if (topic.count > 0) { e.currentTarget.style.borderColor = subject.color; e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.06)'; } }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-subtle)'; e.currentTarget.style.boxShadow = 'none'; }}
-              >
-                <div style={{ width: 36, height: 36, borderRadius: 10, background: subject.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 13, color: subject.color, flexShrink: 0 }}>
-                  {index + 1}
-                </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 600, fontSize: 14, color: 'var(--text-primary)' }}>{topic.name}</div>
-                  <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2 }}>{topic.count > 0 ? `${topic.count} questions` : 'No questions yet'}</div>
-                </div>
-                <div style={{ fontWeight: 700, fontSize: 13, color: topic.count > 0 ? subject.color : 'var(--text-secondary)' }}>
-                  {topic.count > 0 ? 'Start →' : 'Coming soon'}
-                </div>
-              </div>
-            ))}
+        {/* Standard Page Topbar */}
+        <div style={{ background: '#FFFFFF', borderBottom: '1px solid #E2E8F0', padding: '0 28px', height: 58, display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 20 }}>
+          <button onClick={onBack} style={{ background: 'none', border: '1px solid #E2E8F0', borderRadius: 8, padding: '7px 16px', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: '#475569', fontFamily: 'inherit' }}>
+            ← Back to Chapters
+          </button>
+          <div style={{ fontWeight: 700, fontSize: 15, color: '#0F172A' }}>{subject.label} · {chapter.name}</div>
+          <div style={{ width: 80 }} />
+        </div>
+
+        <div style={{ maxWidth: 720, margin: '0 auto', padding: '48px 24px' }}>
+          <div style={{ marginBottom: 32, display: 'flex', alignItems: 'center', gap: 14 }}>
+            <div style={{ width: 52, height: 52, borderRadius: 14, background: '#F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24 }}>
+              {subject.icon}
+            </div>
+            <div>
+              <div style={{ fontWeight: 800, fontSize: 22, color: '#0F172A' }}>{chapter.name}</div>
+              <div style={{ fontSize: 13, color: '#64748B' }}>Choose a topic · IMUPilot-organized categories, not an official IMU topic list</div>
+            </div>
           </div>
-        )}
-      </div>
+
+          {loading ? (
+            <div style={{ textAlign: 'center', color: '#64748B', padding: 40 }}>Loading topics...</div>
+          ) : error ? (
+            <div role="alert" style={{ textAlign: 'center', color: '#0F172A', padding: 40 }}>{error}</div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {topics.map((topic, index) => (
+                <div key={topic.id} onClick={() => { if (topic.count > 0) onSelect(topic); }}
+                  style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: 14, padding: '16px 20px', cursor: topic.count > 0 ? 'pointer' : 'default', display: 'flex', alignItems: 'center', gap: 16, transition: 'all 0.15s', opacity: topic.count > 0 ? 1 : 0.75 }}
+                  onMouseEnter={e => { if (topic.count > 0) { e.currentTarget.style.borderColor = '#0F172A'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.06)'; } }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = '#E2E8F0'; e.currentTarget.style.boxShadow = 'none'; }}
+                >
+                  <div style={{ width: 36, height: 36, borderRadius: 10, background: '#F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 13, color: '#0F172A', flexShrink: 0 }}>
+                    {index + 1}
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 600, fontSize: 14, color: '#0F172A' }}>{topic.name}</div>
+                    <div style={{ fontSize: 12, color: '#64748B', marginTop: 2 }}>{topic.count > 0 ? `${topic.count} questions` : 'No questions yet'}</div>
+                  </div>
+                  <div style={{ fontWeight: 700, fontSize: 13, color: topic.count > 0 ? '#0F172A' : '#64748B' }}>
+                    {topic.count > 0 ? 'Start →' : 'Coming soon'}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </main>
     </div>
   );
 }
@@ -650,10 +709,10 @@ function TestEngine({ subject, chapter, topic, onBack }) {
           {/* Score cards */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 28 }}>
             {[
-              { label: 'Score', value: result.score, color: 'var(--accent-navy)', big: true },
-              { label: 'Correct', value: result.correct, color: 'var(--accent-success)' },
-              { label: 'Incorrect', value: result.incorrect, color: 'var(--accent-danger)' },
-              { label: 'Skipped', value: result.skipped, color: 'var(--text-secondary)' },
+              { label: 'Score', value: result.score, color: '#0F172A', big: true },
+              { label: 'Correct', value: result.correct, color: '#0F172A' },
+              { label: 'Incorrect', value: result.incorrect, color: '#0F172A' },
+              { label: 'Skipped', value: result.skipped, color: '#0F172A' },
             ].map(s => (
               <div key={s.label} style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)', borderRadius: 14, padding: '20px', textAlign: 'center' }}>
                 <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>{s.label}</div>
@@ -669,7 +728,7 @@ function TestEngine({ subject, chapter, topic, onBack }) {
               <div style={{ width: 48, height: 48, borderRadius: 12, background: subject.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22 }}>🎯</div>
               <div>
                 <div style={{ fontSize: 11, color: 'var(--text-secondary)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Accuracy</div>
-                <div style={{ fontSize: 24, fontWeight: 800, color: result.accuracy >= 70 ? 'var(--accent-success)' : result.accuracy >= 50 ? 'var(--accent-warning)' : 'var(--accent-danger)' }}>{result.accuracy}%</div>
+                <div style={{ fontSize: 24, fontWeight: 800, color: '#0F172A' }}>{result.accuracy}%</div>
               </div>
             </div>
             <div style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)', borderRadius: 14, padding: '20px', display: 'flex', alignItems: 'center', gap: 14 }}>
@@ -690,10 +749,10 @@ function TestEngine({ subject, chapter, topic, onBack }) {
               const isCorrect = selectedLetter === q.correct_option;
               const isSkipped = !selected;
               return (
-                <div key={i} style={{ background: 'var(--bg-elevated)', border: `1px solid ${isCorrect ? 'var(--accent-success)' : isSkipped ? 'var(--border-subtle)' : 'var(--accent-danger)'}`, borderRadius: 14, overflow: 'hidden' }}>
-                  <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: isCorrect ? 'var(--accent-success-subtle)' : isSkipped ? 'var(--bg-tertiary)' : 'var(--accent-danger-subtle)' }}>
+                <div key={i} style={{ background: 'var(--bg-elevated)', border: `1px solid ${isCorrect ? '#0F172A' : isSkipped ? '#E2E8F0' : '#475569'}`, borderRadius: 14, overflow: 'hidden' }}>
+                  <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#F8FAFC' }}>
                     <span style={{ fontWeight: 700, fontSize: 13, color: 'var(--text-secondary)' }}>Q{i + 1}</span>
-                    <span style={{ fontSize: 12, fontWeight: 700, padding: '3px 10px', borderRadius: 999, background: isCorrect ? 'var(--accent-success-subtle)' : isSkipped ? 'var(--bg-tertiary)' : 'var(--accent-danger-subtle)', color: isCorrect ? 'var(--accent-success)' : isSkipped ? 'var(--text-secondary)' : 'var(--accent-danger)' }}>
+                    <span style={{ fontSize: 12, fontWeight: 700, padding: '3px 10px', borderRadius: 999, background: '#F1F5F9', color: isCorrect ? '#0F172A' : isSkipped ? '#64748B' : '#475569' }}>
                       {isCorrect ? '✓ Correct' : isSkipped ? '— Skipped' : '✗ Incorrect'}
                     </span>
                   </div>
@@ -708,11 +767,11 @@ function TestEngine({ subject, chapter, topic, onBack }) {
                         const isSelectedOpt = letter === selectedLetter;
                         const isWrong = isSelectedOpt && !isCorrectOpt;
                         return (
-                          <div key={opt} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', borderRadius: 8, background: isCorrectOpt ? 'var(--accent-success-subtle)' : isWrong ? 'var(--accent-danger-subtle)' : 'var(--bg-tertiary)', border: `1px solid ${isCorrectOpt ? 'var(--accent-success)' : isWrong ? 'var(--accent-danger)' : 'var(--border-subtle)'}` }}>
-                            <div style={{ width: 22, height: 22, borderRadius: '50%', background: isCorrectOpt ? 'var(--accent-success)' : isWrong ? 'var(--accent-danger)' : 'var(--border-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: isCorrectOpt || isWrong ? '#fff' : 'var(--text-secondary)', flexShrink: 0 }}>
+                          <div key={opt} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', borderRadius: 8, background: isCorrectOpt ? '#F1F5F9' : isWrong ? '#F1F5F9' : 'var(--bg-tertiary)', border: `1px solid ${isCorrectOpt ? '#0F172A' : isWrong ? '#475569' : 'var(--border-subtle)'}` }}>
+                            <div style={{ width: 22, height: 22, borderRadius: '50%', background: isCorrectOpt ? '#0F172A' : isWrong ? '#475569' : 'var(--border-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: isCorrectOpt || isWrong ? '#fff' : 'var(--text-secondary)', flexShrink: 0 }}>
                               {letter.toUpperCase()}
                             </div>
-                            <span style={{ fontSize: 12, color: isCorrectOpt ? 'var(--accent-success)' : isWrong ? 'var(--accent-danger)' : 'var(--text-primary)' }}>
+                            <span style={{ fontSize: 12, color: isCorrectOpt ? '#0F172A' : isWrong ? '#475569' : 'var(--text-primary)' }}>
                               <MathText text={q[opt]} />
                             </span>
                           </div>
@@ -720,7 +779,7 @@ function TestEngine({ subject, chapter, topic, onBack }) {
                       })}
                     </div>
                     {q.concept && (
-                      <div style={{ marginTop: 12, padding: '10px 14px', background: 'var(--accent-info-subtle)', borderRadius: 8, fontSize: 12, color: 'var(--accent-info)' }}>
+                      <div style={{ marginTop: 12, padding: '10px 14px', background: '#F1F5F9', borderRadius: 8, fontSize: 12, color: '#0F172A' }}>
                         💡 <b>Concept:</b> {q.concept}
                       </div>
                     )}
@@ -743,14 +802,14 @@ function TestEngine({ subject, chapter, topic, onBack }) {
           <div style={{ fontSize: 48, marginBottom: 16 }}>⚠️</div>
           <div style={{ fontWeight: 800, fontSize: 20, color: 'var(--text-primary)', marginBottom: 8 }}>Submit Test?</div>
           <div style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 28, lineHeight: 1.6 }}>
-            Answered <b style={{ color: 'var(--accent-success)' }}>{answered}</b> of <b>{questions.length}</b> questions.
+            Answered <b style={{ color: '#0F172A' }}>{answered}</b> of <b>{questions.length}</b> questions.
             <br />{questions.length - answered} questions unanswered.
           </div>
           <div style={{ display: 'flex', gap: 10 }}>
             <button onClick={() => setShowSubmitConfirm(false)} style={{ flex: 1, padding: '12px', border: '1px solid var(--border-subtle)', borderRadius: 10, background: 'var(--bg-elevated)', cursor: 'pointer', fontWeight: 600, fontSize: 14, fontFamily: 'inherit', color: 'var(--text-secondary)' }}>
               Go Back
             </button>
-            <button onClick={handleSubmit} style={{ flex: 1, padding: '12px', border: 'none', borderRadius: 10, background: 'var(--accent-danger)', color: '#fff', cursor: 'pointer', fontWeight: 700, fontSize: 14, fontFamily: 'inherit' }}>
+            <button onClick={handleSubmit} style={{ flex: 1, padding: '12px', border: 'none', borderRadius: 10, background: '#0F172A', color: '#fff', cursor: 'pointer', fontWeight: 700, fontSize: 14, fontFamily: 'inherit' }}>
               Submit
             </button>
           </div>
@@ -793,11 +852,11 @@ function TestEngine({ subject, chapter, topic, onBack }) {
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           {/* Timer */}
-          <div style={{ background: timeRemaining < 300 ? 'var(--accent-danger)' : 'var(--accent-navy)', color: '#fff', fontWeight: 800, fontSize: 18, padding: '6px 18px', borderRadius: 10, letterSpacing: 1, fontFamily: 'monospace' }}>
+          <div style={{ background: '#0F172A', color: '#fff', fontWeight: 800, fontSize: 18, padding: '6px 18px', borderRadius: 10, letterSpacing: 1, fontFamily: 'monospace' }}>
             {formatTime(timeRemaining)}
           </div>
           {/* Submit */}
-          <button onClick={() => setShowSubmitConfirm(true)} style={{ background: 'var(--accent-success)', color: '#fff', border: 'none', borderRadius: 10, padding: '8px 20px', fontWeight: 700, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>
+          <button onClick={() => setShowSubmitConfirm(true)} style={{ background: '#0F172A', color: '#fff', border: 'none', borderRadius: 10, padding: '8px 20px', fontWeight: 700, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>
             Submit Exam
           </button>
         </div>
@@ -859,7 +918,7 @@ function TestEngine({ subject, chapter, topic, onBack }) {
 
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <button onClick={handleClear}
-                  style={{ padding: '9px 16px', border: '1px solid var(--accent-danger-subtle)', borderRadius: 10, background: 'var(--accent-danger-subtle)', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: 'var(--accent-danger)', fontFamily: 'inherit' }}>
+                  style={{ padding: '9px 16px', border: '1px solid #E2E8F0', borderRadius: 10, background: '#F1F5F9', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: '#0F172A', fontFamily: 'inherit' }}>
                   ✕ Clear
                 </button>
                 <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{answered} answered · {questions.length - answered} remaining</span>
@@ -888,10 +947,10 @@ function TestEngine({ subject, chapter, topic, onBack }) {
                 return (
                   <div key={i} onClick={() => setCurrentIndex(i)}
                     style={{ width: 36, height: 36, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s',
-                      background: isCurrent ? subject.color : isAnswered ? 'var(--accent-success-subtle)' : 'var(--bg-tertiary)',
-                      color: isCurrent ? '#fff' : isAnswered ? 'var(--accent-success)' : 'var(--text-secondary)',
-                      border: isCurrent ? `2px solid ${subject.color}` : isAnswered ? '2px solid var(--accent-success)' : '2px solid var(--border-subtle)',
-                      boxShadow: isCurrent ? `0 0 0 3px ${subject.color}33` : 'none',
+                      background: (isCurrent || isAnswered) ? '#0F172A' : 'var(--bg-tertiary)',
+                      color: (isCurrent || isAnswered) ? '#FFFFFF' : 'var(--text-secondary)',
+                      border: (isCurrent || isAnswered) ? '2px solid #0F172A' : '2px solid var(--border-subtle)',
+                      boxShadow: isCurrent ? '0 0 0 3px rgba(15, 23, 42, 0.2)' : 'none',
                     }}>
                     {i + 1}
                   </div>
@@ -903,9 +962,9 @@ function TestEngine({ subject, chapter, topic, onBack }) {
           {/* Legend */}
           <div style={{ padding: '12px 16px', borderTop: '1px solid var(--border-subtle)', fontSize: 11, color: 'var(--text-secondary)' }}>
             {[
-              { color: subject.color, label: 'Current' },
-              { color: 'var(--accent-success-subtle)', border: 'var(--accent-success)', textColor: 'var(--accent-success)', label: 'Answered' },
-              { color: 'var(--bg-tertiary)', border: 'var(--border-subtle)', textColor: 'var(--text-secondary)', label: 'Not answered' },
+              { color: '#0F172A', border: '#0F172A', label: 'Current' },
+              { color: '#0F172A', border: '#0F172A', label: 'Answered' },
+              { color: 'var(--bg-tertiary)', border: 'var(--border-subtle)', label: 'Not answered' },
             ].map(l => (
               <div key={l.label} style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 5 }}>
                 <div style={{ width: 14, height: 14, borderRadius: 4, background: l.color, border: `1px solid ${l.border || l.color}`, flexShrink: 0 }} />
@@ -922,17 +981,24 @@ function TestEngine({ subject, chapter, topic, onBack }) {
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 export default function SectionalTestEngine() {
+  const [mobileOpen, setMobileOpen] = useState(false);
   const [view, setView] = useState('subjects'); // subjects | chapters | topics | test
   const [selectedSubject, setSelectedSubject] = useState(null);
   const [selectedChapter, setSelectedChapter] = useState(null);
   const [selectedTopic, setSelectedTopic] = useState(null);
 
   if (view === 'subjects') return (
-    <SubjectSelect onSelect={sub => { setSelectedSubject(sub); setView('chapters'); }} />
+    <SubjectSelect
+      mobileOpen={mobileOpen}
+      setMobileOpen={setMobileOpen}
+      onSelect={sub => { setSelectedSubject(sub); setView('chapters'); }}
+    />
   );
 
   if (view === 'chapters') return (
     <ChapterSelect
+      mobileOpen={mobileOpen}
+      setMobileOpen={setMobileOpen}
       subject={selectedSubject}
       onSelect={ch => {
         setSelectedChapter(ch);
@@ -945,6 +1011,8 @@ export default function SectionalTestEngine() {
 
   if (view === 'topics') return (
     <TopicSelect
+      mobileOpen={mobileOpen}
+      setMobileOpen={setMobileOpen}
       subject={selectedSubject}
       chapter={selectedChapter}
       onSelect={topic => { setSelectedTopic(topic); setView('test'); }}

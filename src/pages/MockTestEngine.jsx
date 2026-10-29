@@ -24,6 +24,7 @@ export default function MockTestEngine() {
   const [showSubmitConfirm, setShowSubmitConfirm] = useState(false);
   const [testStage, setTestStage] = useState('instructions');
   const [attemptToken, setAttemptToken] = useState(null);
+  const [activeSetNumber, setActiveSetNumber] = useState(testId || 1);
 
   // Anti-cheat proctoring state
   const [tabSwitchCount, setTabSwitchCount] = useState(0);
@@ -77,6 +78,7 @@ export default function MockTestEngine() {
           : null;
         const randomSet = publishedSets[Math.floor(Math.random() * publishedSets.length)];
         const setNumber = matchingSet ? matchingSet.set_number : randomSet.set_number;
+        setActiveSetNumber(setNumber);
 
         const { data: rows, error } = await supabase
           .from("mock_questions")
@@ -407,6 +409,7 @@ export default function MockTestEngine() {
         correct,
         incorrect,
         skipped,
+        unattempted: skipped,
         accuracy,
         timeTakenSeconds,
         subjectBreakdown,
@@ -421,14 +424,33 @@ export default function MockTestEngine() {
 
       // 2. Save to user history
       const user = JSON.parse(localStorage.getItem('user') || 'null');
-      if (user?.id) {
-        const historyKey = `imupilot_test_history_${user.id}`;
+      const userId = user?.id;
+      if (userId) {
+        const historyKey = `imupilot_test_history_${userId}`;
         try {
           const storedHistory = localStorage.getItem(historyKey);
           const history = storedHistory ? JSON.parse(storedHistory) : [];
           localStorage.setItem(historyKey, JSON.stringify([result, ...(Array.isArray(history) ? history : [])].slice(0, 50)));
         } catch (error) {
           console.error('Unable to update your dashboard test history.', error);
+        }
+
+        // Insert to Supabase test_results
+        try {
+          await supabase.from('test_results').insert({
+            user_id: userId,
+            set_number: activeSetNumber || Number(testId) || 1,
+            score: Math.round(result.score),
+            total_questions: result.totalQuestions,
+            correct: result.correct,
+            incorrect: result.incorrect,
+            unattempted: result.skipped ?? result.unattempted ?? 0,
+            time_taken_seconds: result.timeTakenSeconds,
+            subject_breakdown: result.subjectBreakdown,
+            completed_at: completedAt,
+          });
+        } catch (dbErr) {
+          console.warn('Unable to save test_results to Supabase:', dbErr);
         }
       }
 

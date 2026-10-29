@@ -14,6 +14,7 @@ import {
   Moon,
   X,
   Anchor,
+  Tag,
 } from 'lucide-react';
 
 const navigation = [
@@ -21,6 +22,7 @@ const navigation = [
     section: 'Main',
     items: [
       { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+      { to: '/pricing', icon: Tag, label: 'Pricing' },
       { to: '/learn', icon: BookOpen, label: 'Learn', badge: 3 },
       { to: '/test', icon: FileText, label: 'Mock Tests' },
       { to: '/revise', icon: RotateCcw, label: 'Revision' },

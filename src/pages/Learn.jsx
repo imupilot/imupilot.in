@@ -14,6 +14,7 @@ const BLUEPRINT_SUBJECTS = [
 ];
 
 export default function Learn() {
+  const [mobileOpen, setMobileOpen] = useState(false);
   const [selectedSubject, setSelectedSubject] = useState(null);
   const [activeChapter, setActiveChapter] = useState(null);
   const [chapters, setChapters] = useState([]);
@@ -94,9 +95,26 @@ export default function Learn() {
   return (
     <div style={{ display: 'flex', height: '100vh', fontFamily: "'DM Sans','Segoe UI',sans-serif", background: '#F8FAFC', color: '#0F172A', overflow: 'hidden' }}>
       <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
-      <IMUpilotSidebar />
+      <IMUpilotSidebar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
 
-      <main style={{ flex: 1, overflowY: 'auto', minWidth: 0 }}>
+      <main style={{ flex: 1, minWidth: 0, overflowX: 'hidden', overflowY: 'auto' }}>
+        {/* Mobile topbar */}
+        <div style={{
+          display: 'none', // hidden on desktop via CSS
+          position: 'sticky', top: 0, zIndex: 30,
+          background: '#FFFFFF',
+          borderBottom: '1px solid #E2E8F0',
+          padding: '12px 16px',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }} className="mobile-topbar">
+          <span style={{ fontWeight: 700, fontSize: 18, color: '#0F172A' }}>IMUpilot</span>
+          <button onClick={() => setMobileOpen(true)} style={{
+            background: 'none', border: 'none', cursor: 'pointer',
+            color: '#0F172A', fontSize: 22
+          }}>☰</button>
+        </div>
+
         {/* Topbar */}
         <div style={{
           background: '#FFFFFF',
@@ -170,7 +188,7 @@ export default function Learn() {
         </div>
 
         {/* Content Area */}
-        <div style={{ maxWidth: 1080, margin: '0 auto', padding: '28px 24px 60px' }}>
+        <div style={{ maxWidth: 1080, margin: '0 auto', padding: 'clamp(12px, 4vw, 28px)' }}>
           {/* VIEW 1: ACTIVE CHAPTER READER */}
           {activeChapter ? (
             <div style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: 16, padding: '28px 32px', boxShadow: '0 4px 20px rgba(0,0,0,0.03)' }}>
