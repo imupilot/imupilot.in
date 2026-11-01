@@ -230,7 +230,7 @@ export default function TestResult() {
 
                 <div className="px-6 py-5">
                   {/* Question Text */}
-                  <p className="text-gray-900 font-medium text-base leading-relaxed mb-5">{q.text}</p>
+                  <div className="question-content text-gray-900 font-medium text-base leading-relaxed mb-5" dangerouslySetInnerHTML={{ __html: q.text || q.question_text }} />
 
                   {q.image_url && (
                     <img
@@ -264,13 +264,14 @@ export default function TestResult() {
                       return (
                         <div key={optIdx} className={optClass}>
                           <div className={labelClass}>{OPTION_LABELS[optIdx]}</div>
-                          <span className={`text-sm leading-relaxed ${
-                            isCorrectOpt    ? 'text-emerald-800 font-medium' :
-                            isWrongSelected ? 'text-red-800 font-medium' :
-                                              'text-gray-600'
-                          }`}>
-                            {optText}
-                          </span>
+                          <div
+                            className={`option-content text-sm leading-relaxed flex-1 ${
+                              isCorrectOpt    ? 'text-emerald-800 font-medium' :
+                              isWrongSelected ? 'text-red-800 font-medium' :
+                                                'text-gray-600'
+                            }`}
+                            dangerouslySetInnerHTML={{ __html: optText }}
+                          />
                           {isCorrectOpt && (
                             <CheckCircle2 size={16} className="text-emerald-500 flex-shrink-0 mt-0.5 ml-auto" />
                           )}
@@ -291,21 +292,24 @@ export default function TestResult() {
                     {q.concept && (
                       <div>
                         <span className="text-xs font-bold text-blue-700 uppercase tracking-wide">Concept</span>
-                        <p className="text-sm text-blue-900 mt-1 font-medium">{q.concept}</p>
+                        <div className="text-sm text-blue-900 mt-1 font-medium" dangerouslySetInnerHTML={{ __html: q.concept }} />
                       </div>
                     )}
 
-                    {q.solution_steps && (
+                    {(q.solution || q.solution_steps) && (
                       <div>
                         <span className="text-xs font-bold text-blue-700 uppercase tracking-wide">Steps</span>
-                        <p className="text-sm text-blue-900 mt-1 whitespace-pre-line leading-relaxed">{q.solution_steps}</p>
+                        <div
+                          className="solution-content text-sm text-blue-900 mt-1 leading-relaxed"
+                          dangerouslySetInnerHTML={{ __html: q.solution || q.solution_steps }}
+                        />
                       </div>
                     )}
 
                     {q.exam_tip && (
                       <div className="bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
                         <span className="text-xs font-bold text-amber-700 uppercase tracking-wide">Exam Tip</span>
-                        <p className="text-sm text-amber-900 mt-0.5">{q.exam_tip}</p>
+                        <div className="text-sm text-amber-900 mt-0.5" dangerouslySetInnerHTML={{ __html: q.exam_tip }} />
                       </div>
                     )}
                   </div>

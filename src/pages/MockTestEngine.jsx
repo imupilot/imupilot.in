@@ -384,7 +384,8 @@ export default function MockTestEngine() {
             options: [q.option_a, q.option_b, q.option_c, q.option_d],
             correctAnswer: correctOptionIndex,
             concept: q.concept,
-            solution_steps: q.solution_steps,
+            solution_steps: q.solution_steps || q.solution,
+            solution: q.solution || q.solution_steps,
             exam_tip: q.exam_tip,
           });
         });
@@ -710,34 +711,12 @@ export default function MockTestEngine() {
               ))}
             </div>
 
-            <div style={{ padding: '14px 20px', position: 'relative', zIndex: 1 }}>
-              <div style={{ fontSize: 14, marginBottom: 20, lineHeight: 1.8, color: 'var(--text-primary)' }}>
-                <MathText text={currentQ.text || currentQ.question_text} />
-              </div>
-
-              {currentQ?.image_url && (
-                <img
-                  src={currentQ.image_url}
-                  alt="Question diagram"
-                  style={{ maxWidth: '100%', maxHeight: '300px', borderRadius: '8px', margin: '12px 0', border: '1px solid #E2E8F0' }}
-                />
-              )}
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                {['option_a', 'option_b', 'option_c', 'option_d'].map((optKey, idx) => {
-                  const label = ['A', 'B', 'C', 'D'][idx];
-                  const isSelected = answers[qKey] === optKey;
-                  return (
-                    <label key={idx} style={{ display: 'flex', alignItems: 'center', padding: '8px 12px', cursor: 'pointer', border: `1px solid ${isSelected ? 'var(--accent-navy)' : 'var(--border-subtle)'}`, backgroundColor: isSelected ? 'var(--accent-navy-subtle)' : 'var(--bg-elevated)', transition: 'all 0.1s' }}>
-                      <input type="radio" name={`q-${qKey}`} checked={isSelected} onChange={() => handleOptionChange(optKey)} style={{ margin: '0 10px 0 0', accentColor: 'var(--accent-navy)' }} />
-                      <span style={{ fontSize: 13, color: isSelected ? 'var(--accent-navy)' : 'var(--text-primary)', fontWeight: isSelected ? 700 : 400 }}>
-                        <MathText text={currentQ[optKey] || `Option ${label}`} />
-                      </span>
-                    </label>
-                  );
-                })}
-              </div>
-            </div>
+            <TestEngineQuestionView
+              question={currentQ}
+              selectedOption={answers[qKey]}
+              onSelectOption={handleOptionChange}
+              radioGroupName={`q-${qKey}`}
+            />
           </div>
         </div>
 
@@ -959,3 +938,112 @@ export default function MockTestEngine() {
     </div>
   );
 }
+
+export function TestEngineQuestionView({
+  question = {},
+  selectedOption,
+  onSelectOption,
+  showSolution = false,
+  previewLabel = false,
+  radioGroupName = 'q-opt',
+}) {
+  const [internalSelected, setInternalSelected] = useState(selectedOption || null);
+  const activeSelected = selectedOption !== undefined ? selectedOption : internalSelected;
+  const handleSelect = onSelectOption || setInternalSelected;
+
+  return (
+    <div className="test-engine-question" style={{ padding: '16px 20px', position: 'relative', zIndex: 1, background: '#fff', borderRadius: '8px' }}>
+      {previewLabel && (
+        <div style={{ fontSize: 12, color: '#64748B', fontWeight: 600, marginBottom: 14 }}>
+          Preview — student view
+        </div>
+      )}
+
+      {/* Question text */}
+      <div className="question-content" style={{ fontSize: 14, marginBottom: 20, lineHeight: 1.8, color: 'var(--text-primary, #0F172A)' }}>
+        <div dangerouslySetInnerHTML={{ __html: question?.question_text || question?.text || '<span style="color:#94A3B8;font-style:italic">Question text will appear here...</span>' }} />
+      </div>
+
+      {/* Question image if present */}
+      {question?.image_url && (
+        <div style={{ margin: '14px 0' }}>
+          <img
+            src={question.image_url}
+            alt="Question diagram"
+            style={{ maxWidth: '100%', maxHeight: '300px', borderRadius: '8px', border: '1px solid #E2E8F0', display: 'block' }}
+          />
+        </div>
+      )}
+
+      {/* All 4 options as the student sees them (with option letter A/B/C/D) */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+        {['option_a', 'option_b', 'option_c', 'option_d'].map((optKey, idx) => {
+          const label = ['A', 'B', 'C', 'D'][idx];
+          const isSelected = activeSelected === optKey;
+          return (
+            <label
+              key={idx}
+              onClick={() => handleSelect(optKey)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                padding: '8px 12px',
+                cursor: 'pointer',
+                border: `1px solid ${isSelected ? 'var(--accent-navy, #0F172A)' : 'var(--border-subtle, #E2E8F0)'}`,
+                backgroundColor: isSelected ? 'var(--accent-navy-subtle, #F1F5F9)' : 'var(--bg-elevated, #fff)',
+                transition: 'all 0.1s',
+              }}
+            >
+              <input
+                type="radio"
+                name={radioGroupName}
+                checked={isSelected}
+                onChange={() => handleSelect(optKey)}
+                style={{ margin: '0 10px 0 0', accentColor: 'var(--accent-navy, #0F172A)' }}
+              />
+              <span
+                className="option-content"
+                style={{
+                  fontSize: 13,
+                  color: isSelected ? 'var(--accent-navy, #0F172A)' : 'var(--text-primary, #1E293B)',
+                  fontWeight: isSelected ? 700 : 400,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                }}
+              >
+                <span style={{ fontWeight: 600, marginRight: 6, color: isSelected ? '#0F172A' : '#64748B' }}>({label})</span>
+                <span dangerouslySetInnerHTML={{ __html: question?.[optKey] || `<span style="color:#94A3B8;font-style:italic">Option ${label}</span>` }} />
+              </span>
+            </label>
+          );
+        })}
+      </div>
+
+      {/* Solution/explanation below (rendered as HTML) */}
+      {showSolution && (question?.solution || question?.solution_steps || question?.concept) && (
+        <div style={{ marginTop: 20, padding: '14px 16px', background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '8px' }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: '#0F172A', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+            💡 Solution / Explanation
+          </div>
+          {question.concept && (
+            <div style={{ fontSize: 12, color: '#475569', marginBottom: 8 }}>
+              <b>Concept:</b> <span dangerouslySetInnerHTML={{ __html: question.concept }} />
+            </div>
+          )}
+          {(question.solution || question.solution_steps) && (
+            <div className="solution-content" style={{ fontSize: 13, color: '#1E293B', lineHeight: 1.6 }}>
+              <div dangerouslySetInnerHTML={{ __html: question.solution || question.solution_steps }} />
+            </div>
+          )}
+          {question.exam_tip && (
+            <div style={{ marginTop: 8, padding: '6px 10px', background: '#FFFBEB', border: '1px solid #FEF3C7', borderRadius: 6, fontSize: 12, color: '#92400E' }}>
+              <b>Exam Tip:</b> {question.exam_tip}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+

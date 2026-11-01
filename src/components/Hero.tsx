@@ -219,9 +219,10 @@ export const Hero = () => {
                 </div>
               ) : (
                 <>
-                  <h2 className="mt-3.5 text-lg sm:text-xl font-semibold leading-snug text-slate-900">
-                    {activeQuestion.text}
-                  </h2>
+                  <h2
+                    className="question-content mt-3.5 text-lg sm:text-xl font-semibold leading-snug text-slate-900"
+                    dangerouslySetInnerHTML={{ __html: activeQuestion.text }}
+                  />
 
                   <div className="mt-5 space-y-2.5">
                     {activeQuestion.options.map((option, index) => {
@@ -241,7 +242,7 @@ export const Hero = () => {
                               : "border-slate-200/80 bg-white text-slate-800 hover:border-slate-300 hover:bg-slate-50/50"
                           } ${isTransitioning ? "cursor-default" : "cursor-pointer"}`}
                         >
-                          <span>{option}</span>
+                          <span className="option-content" dangerouslySetInnerHTML={{ __html: option }} />
                           {(showSelectedState || isSelected) && <Check className="h-4 w-4" />}
                         </button>
                       );

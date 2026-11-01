@@ -752,8 +752,8 @@ function TestEngine({ subject, chapter, topic, onBack }) {
                     </span>
                   </div>
                   <div style={{ padding: '14px 16px' }}>
-                    <div style={{ fontSize: 13, color: 'var(--text-primary)', marginBottom: 12, lineHeight: 1.6 }}>
-                      <MathText text={q.question_text} />
+                    <div className="question-content" style={{ fontSize: 13, color: 'var(--text-primary)', marginBottom: 12, lineHeight: 1.6 }}>
+                      <div dangerouslySetInnerHTML={{ __html: q.question_text }} />
                     </div>
 
                     {q.image_url && (
@@ -775,16 +775,26 @@ function TestEngine({ subject, chapter, topic, onBack }) {
                             <div style={{ width: 22, height: 22, borderRadius: '50%', background: isCorrectOpt ? '#0F172A' : isWrong ? '#475569' : 'var(--border-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: isCorrectOpt || isWrong ? '#fff' : 'var(--text-secondary)', flexShrink: 0 }}>
                               {letter.toUpperCase()}
                             </div>
-                            <span style={{ fontSize: 12, color: isCorrectOpt ? '#0F172A' : isWrong ? '#475569' : 'var(--text-primary)' }}>
-                              <MathText text={q[opt]} />
+                            <span className="option-content" style={{ fontSize: 12, color: isCorrectOpt ? '#0F172A' : isWrong ? '#475569' : 'var(--text-primary)' }}>
+                              <span dangerouslySetInnerHTML={{ __html: q[opt] }} />
                             </span>
                           </div>
                         );
                       })}
                     </div>
-                    {q.concept && (
+                    {(q.solution || q.solution_steps || q.concept) && (
                       <div style={{ marginTop: 12, padding: '10px 14px', background: '#F1F5F9', borderRadius: 8, fontSize: 12, color: '#0F172A' }}>
-                        💡 <b>Concept:</b> {q.concept}
+                        {q.concept && (
+                          <div style={{ marginBottom: (q.solution || q.solution_steps) ? 6 : 0 }}>
+                            💡 <b>Concept:</b> <span dangerouslySetInnerHTML={{ __html: q.concept }} />
+                          </div>
+                        )}
+                        {(q.solution || q.solution_steps) && (
+                          <div>
+                            <b>Solution:</b>
+                            <div className="solution-content" dangerouslySetInnerHTML={{ __html: q.solution || q.solution_steps }} />
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -885,8 +895,8 @@ function TestEngine({ subject, chapter, topic, onBack }) {
 
             {/* Question text */}
             <div style={{ padding: '24px 24px 16px' }}>
-              <div style={{ fontSize: 15, color: 'var(--text-primary)', lineHeight: 1.8, marginBottom: 24, fontWeight: 500 }}>
-                <MathText text={currentQ?.question_text || ''} />
+              <div className="question-content" style={{ fontSize: 15, color: 'var(--text-primary)', lineHeight: 1.8, marginBottom: 24, fontWeight: 500 }}>
+                <div dangerouslySetInnerHTML={{ __html: currentQ?.question_text || '' }} />
               </div>
 
               {currentQ?.image_url && (
@@ -911,8 +921,8 @@ function TestEngine({ subject, chapter, topic, onBack }) {
                       <div style={{ width: 32, height: 32, borderRadius: '50%', border: `2px solid ${isSelected ? subject.color : 'var(--border-subtle)'}`, background: isSelected ? subject.color : 'var(--bg-elevated)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 13, color: isSelected ? '#fff' : 'var(--text-secondary)', flexShrink: 0, transition: 'all 0.15s' }}>
                         {label}
                       </div>
-                      <span style={{ fontSize: 14, color: isSelected ? 'var(--text-primary)' : 'var(--text-primary)', fontWeight: isSelected ? 600 : 400 }}>
-                        <MathText text={currentQ?.[opt] || ''} />
+                      <span className="option-content" style={{ fontSize: 14, color: isSelected ? 'var(--text-primary)' : 'var(--text-primary)', fontWeight: isSelected ? 600 : 400 }}>
+                        <span dangerouslySetInnerHTML={{ __html: currentQ?.[opt] || '' }} />
                       </span>
                     </div>
                   );

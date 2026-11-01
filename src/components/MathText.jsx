@@ -16,11 +16,15 @@ export default function MathText({ text, style = {}, className = '' }) {
   const parts = String(text).split('$');
 
   return (
-    <span style={style} className={className}>
+    <span style={{ display: 'inline', ...style }} className={`math-text-container ${className}`}>
+      <style>{`
+        .math-text-container p { display: inline; margin: 0; }
+        .math-text-container img { max-width: 100%; max-height: 200px; display: inline-block; vertical-align: middle; border-radius: 4px; margin: 2px 4px; }
+      `}</style>
       {parts.map((part, i) => {
         if (i % 2 === 0) {
-          // Plain text segment
-          return <span key={i}>{part}</span>;
+          // Plain text / Rich HTML segment from TipTap
+          return <span key={i} dangerouslySetInnerHTML={{ __html: part }} />;
         } else {
           // Math segment — render with KaTeX
           try {

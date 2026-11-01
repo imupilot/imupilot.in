@@ -13,6 +13,23 @@
    IMUPILOT — PREMIUM DESIGN SYSTEM
    ============================================ */
 
+.question-content img,
+.option-content img,
+.solution-content img {
+  max-width: 100%;
+  max-height: 200px;
+  object-fit: contain;
+  display: inline;
+  vertical-align: middle;
+  margin: 0 4px;
+}
+
+.question-content p,
+.option-content p {
+  display: inline;
+  margin: 0;
+}
+
 *,
 *::before,
 *::after {

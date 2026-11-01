@@ -240,11 +240,10 @@ function FlashcardView({ title, cards, onBack, userId, color, initialProgress, o
             fontSize: 20,
             fontWeight: 600,
             lineHeight: 1.7,
-            whiteSpace: 'pre-wrap',
             filter: (isFlipped && !isPro(profile) && !current?.is_free) ? 'blur(5px)' : 'none',
             userSelect: (isFlipped && !isPro(profile) && !current?.is_free) ? 'none' : 'auto',
           }}>
-            {isFlipped ? current?.answer || 'Answer is not available for this card yet.' : current?.question}
+            <div className="question-content" dangerouslySetInnerHTML={{ __html: isFlipped ? (current?.answer || 'Answer is not available for this card yet.') : (current?.question || '') }} />
           </div>
 
           {/* Pro Lock Overlay over blurred answer */}
@@ -314,7 +313,7 @@ function FlashcardView({ title, cards, onBack, userId, color, initialProgress, o
         ].filter(([, value]) => value?.trim()).map(([label, value]) => (
           <div key={label} style={{ width: '100%', maxWidth: 620, marginTop: 18, paddingTop: 14, borderTop: '1px solid #E2E8F0', textAlign: 'left' }}>
             <div style={{ marginBottom: 5, color: '#64748B', fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' }}>{label}</div>
-            <div style={{ color: '#334155', fontSize: 14, fontWeight: 400, lineHeight: 1.6, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{value}</div>
+            <div className="solution-content" style={{ color: '#334155', fontSize: 14, fontWeight: 400, lineHeight: 1.6, overflowWrap: 'anywhere' }} dangerouslySetInnerHTML={{ __html: value }} />
           </div>
         )))}
         {!isFlipped && <div style={{ marginTop: 24, color: '#CBD5E1', fontSize: 12 }}>Select to reveal the answer</div>}

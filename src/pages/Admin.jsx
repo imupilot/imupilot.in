@@ -1,5 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "../supabaseClient"; // your existing supabase client
+import { useEditor, EditorContent } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import Underline from '@tiptap/extension-underline';
+import Image from '@tiptap/extension-image';
+import { TestEngineQuestionView } from "./TestEngine";
 
 // Direct Supabase integration - backend API dependency removed
 
@@ -247,25 +252,193 @@ function QuestionImageUpload({ imageUrl, onUploadSuccess, onRemove, subject, set
   );
 }
 
-const EMPTY_Q = { subject: "", chapter: "", topic_tag: "", difficulty: "medium", question_text: "", image_url: null, option_a: "", option_b: "", option_c: "", option_d: "", correct_option: "A", concept: "", solution_steps: "", exam_tip: "", year: "" };
+function TipTapQuestionEditor({ value, onChange, minHeight = 80 }) {
+  const editor = useEditor({
+    extensions: [
+      StarterKit,
+      Underline,
+      Image.configure({ inline: true }),
+    ],
+    content: value || '',
+    onUpdate: ({ editor: ed }) => {
+      onChange(ed.getHTML());
+    },
+  });
+
+  useEffect(() => {
+    if (editor && value !== undefined && value !== editor.getHTML()) {
+      editor.commands.setContent(value || '');
+    }
+  }, [value, editor]);
+
+  if (!editor) return null;
+
+  return (
+    <div style={{ border: '1px solid #E2E8F0', borderRadius: '8px', overflow: 'hidden', marginBottom: 12 }}>
+      <style>{`
+        .tiptap-question-editor .tiptap {
+          outline: none;
+          min-height: ${minHeight}px;
+          font-family: inherit;
+          font-size: 13px;
+          color: #0F172A;
+        }
+        .tiptap-question-editor .tiptap p {
+          margin: 0 0 6px 0;
+        }
+        .tiptap-question-editor .tiptap p:last-child {
+          margin-bottom: 0;
+        }
+        .tiptap-question-editor .tiptap img {
+          max-width: 100%;
+          max-height: 200px;
+          border-radius: 6px;
+          display: inline-block;
+          vertical-align: middle;
+          margin: 4px;
+        }
+      `}</style>
+      <div style={{ display: 'flex', gap: '4px', padding: '6px 8px', borderBottom: '1px solid #E2E8F0', background: '#F8FAFC', alignItems: 'center' }}>
+        <button
+          type="button"
+          onMouseDown={(e) => {
+            e.preventDefault();
+            editor.chain().focus().toggleBold().run();
+          }}
+          style={{
+            fontWeight: 'bold',
+            padding: '3px 8px',
+            borderRadius: '4px',
+            border: '1px solid #E2E8F0',
+            background: editor?.isActive('bold') ? '#0F172A' : '#fff',
+            color: editor?.isActive('bold') ? '#fff' : '#0F172A',
+            cursor: 'pointer',
+            fontSize: '12px',
+          }}
+          title="Bold"
+        >
+          B
+        </button>
+        <button
+          type="button"
+          onMouseDown={(e) => {
+            e.preventDefault();
+            editor.chain().focus().toggleItalic().run();
+          }}
+          style={{
+            fontStyle: 'italic',
+            padding: '3px 8px',
+            borderRadius: '4px',
+            border: '1px solid #E2E8F0',
+            background: editor?.isActive('italic') ? '#0F172A' : '#fff',
+            color: editor?.isActive('italic') ? '#fff' : '#0F172A',
+            cursor: 'pointer',
+            fontSize: '12px',
+          }}
+          title="Italic"
+        >
+          I
+        </button>
+        <button
+          type="button"
+          onMouseDown={(e) => {
+            e.preventDefault();
+            editor.chain().focus().toggleUnderline().run();
+          }}
+          style={{
+            textDecoration: 'underline',
+            padding: '3px 8px',
+            borderRadius: '4px',
+            border: '1px solid #E2E8F0',
+            background: editor?.isActive('underline') ? '#0F172A' : '#fff',
+            color: editor?.isActive('underline') ? '#fff' : '#0F172A',
+            cursor: 'pointer',
+            fontSize: '12px',
+          }}
+          title="Underline"
+        >
+          U
+        </button>
+        <button
+          type="button"
+          onMouseDown={(e) => {
+            e.preventDefault();
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            input.onchange = async () => {
+              const file = input.files[0];
+              if (!file) return;
+              const fileExt = file.name.split('.').pop();
+              const fileName = `${Date.now()}.${fileExt}`;
+              const { data, error } = await supabase.storage
+                .from('question-images')
+                .upload(fileName, file);
+              if (error) {
+                console.error(error);
+                alert('Image upload failed: ' + error.message);
+                return;
+              }
+              const { data: urlData } = supabase.storage
+                .from('question-images')
+                .getPublicUrl(fileName);
+              editor.chain().focus().setImage({ src: urlData.publicUrl }).run();
+            };
+            input.click();
+          }}
+          style={{
+            padding: '3px 8px',
+            borderRadius: '4px',
+            border: '1px solid #E2E8F0',
+            background: '#fff',
+            color: '#0F172A',
+            cursor: 'pointer',
+            fontSize: '12px',
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+          title="Insert image"
+        >
+          🖼
+        </button>
+      </div>
+      <div className="tiptap-question-editor" style={{ padding: '8px 12px', minHeight: `${minHeight}px`, background: '#fff' }}>
+        <EditorContent editor={editor} />
+      </div>
+    </div>
+  );
+}
+
+const EMPTY_Q = { subject: "", chapter: "", topic_tag: "", difficulty: "medium", question_text: "", image_url: null, option_a: "", option_b: "", option_c: "", option_d: "", correct_option: "A", concept: "", solution: "", solution_steps: "", exam_tip: "", year: "" };
 
 function EditDrawer({ question, onClose, onSave }) {
-  const [form, setForm] = useState({ ...EMPTY_Q, ...question });
+  const [form, setForm] = useState({
+    ...EMPTY_Q,
+    ...question,
+    solution: question?.solution || question?.solution_steps || "",
+    solution_steps: question?.solution_steps || question?.solution || "",
+  });
   const [saving, setSaving] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
 
   async function save() {
     if (!form.question_text || !form.subject) return alert("Subject and question text are required");
     setSaving(true);
-    const { id, created_at, ...fields } = form;
+    const { id, created_at, solution, ...fields } = form;
+    const payload = {
+      ...fields,
+      solution_steps: form.solution || form.solution_steps || "",
+    };
     try {
       const { data, error } = await supabase
         .from("questions")
-        .update(fields)
+        .update(payload)
         .eq("id", question.id)
         .select();
       setSaving(false);
       if (error) return alert("Save failed: " + error.message);
-      if (data && data[0]) onSave(data[0]);
+      if (data && data[0]) onSave({ ...data[0], solution: payload.solution_steps });
     } catch (err) {
       setSaving(false);
       alert("Save failed: " + err.message);
@@ -277,58 +450,124 @@ function EditDrawer({ question, onClose, onSave }) {
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 1000, display: "flex" }}>
       <div style={{ flex: 1, background: "rgba(0,0,0,0.3)" }} onClick={onClose} />
-      <div style={{ width: 560, background: "#fff", boxShadow: "-4px 0 24px rgba(0,0,0,0.1)", display: "flex", flexDirection: "column", overflowY: "auto" }}>
-        <div style={{ padding: "20px 24px", borderBottom: "1px solid #e5e7eb", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, background: "#fff", zIndex: 1 }}>
+      <div style={{ width: showPreview ? "min(1150px, 95vw)" : 560, background: "#fff", boxShadow: "-4px 0 24px rgba(0,0,0,0.1)", display: "flex", flexDirection: "column", maxHeight: "100vh", transition: "width 0.2s ease" }}>
+        <div style={{ padding: "16px 24px", borderBottom: "1px solid #e5e7eb", display: "flex", alignItems: "center", justifyContent: "space-between", background: "#fff", zIndex: 10, flexShrink: 0 }}>
           <div style={{ fontSize: 15, fontWeight: 600 }}>Edit question</div>
-          <button style={{ ...S.btn(), padding: "4px 10px", fontSize: 12 }} onClick={onClose}>✕ Close</button>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <button
+              type="button"
+              onClick={() => setShowPreview((prev) => !prev)}
+              style={{
+                background: "#F1F5F9",
+                color: "#0F172A",
+                border: "1px solid #E2E8F0",
+                padding: "4px 12px",
+                borderRadius: "6px",
+                fontSize: 12,
+                fontWeight: 600,
+                cursor: "pointer",
+              }}
+            >
+              Preview
+            </button>
+            <button style={{ ...S.btn(), padding: "4px 10px", fontSize: 12 }} onClick={onClose}>✕ Close</button>
+          </div>
         </div>
-        <div style={{ padding: 24, flex: 1 }}>
-          <div style={S.formRow}>
-            <div><label style={S.label}>Subject</label><input style={S.input} placeholder="Mathematics" {...f("subject")} /></div>
-            <div><label style={S.label}>Chapter</label><input style={S.input} placeholder="Trigonometry" {...f("chapter")} /></div>
-          </div>
-          <div style={S.formRow}>
-            <div><label style={S.label}>Topic tag</label><input style={S.input} {...f("topic_tag")} /></div>
-            <div><label style={S.label}>Difficulty</label>
-              <select style={S.input} value={form.difficulty} onChange={(e) => setForm({ ...form, difficulty: e.target.value })}>
-                <option value="easy">Easy</option><option value="medium">Medium</option><option value="hard">Hard</option>
-              </select>
+
+        <div style={{ display: "flex", flex: 1, minHeight: 0, overflow: "hidden" }}>
+          <div style={{ width: showPreview ? 560 : "100%", maxWidth: "100%", flexShrink: 0, padding: 24, overflowY: "auto", borderRight: showPreview ? "1px solid #e5e7eb" : "none" }}>
+            <div style={S.formRow}>
+              <div><label style={S.label}>Subject</label><input style={S.input} placeholder="Mathematics" {...f("subject")} /></div>
+              <div><label style={S.label}>Chapter</label><input style={S.input} placeholder="Trigonometry" {...f("chapter")} /></div>
             </div>
-          </div>
-          <label style={S.label}>Question text (use $...$ for LaTeX)</label>
-          <textarea style={{ ...S.input, height: 80 }} {...f("question_text")} />
-          <QuestionImageUpload
-            imageUrl={form.image_url}
-            onUploadSuccess={(url) => setForm((prev) => ({ ...prev, image_url: url }))}
-            onRemove={() => setForm((prev) => ({ ...prev, image_url: null }))}
-            subject={form.subject}
-            setNumber={form.chapter || 1}
-            questionId={question?.id}
-          />
-          <div style={S.formRow}>
-            <div><label style={S.label}>Option A</label><input style={S.input} {...f("option_a")} /></div>
-            <div><label style={S.label}>Option B</label><input style={S.input} {...f("option_b")} /></div>
-          </div>
-          <div style={S.formRow}>
-            <div><label style={S.label}>Option C</label><input style={S.input} {...f("option_c")} /></div>
-            <div><label style={S.label}>Option D</label><input style={S.input} {...f("option_d")} /></div>
-          </div>
-          <div style={S.formRow}>
-            <div><label style={S.label}>Correct option</label>
-              <select style={S.input} value={form.correct_option} onChange={(e) => setForm({ ...form, correct_option: e.target.value })}>
-                <option>A</option><option>B</option><option>C</option><option>D</option>
-              </select>
+            <div style={S.formRow}>
+              <div><label style={S.label}>Topic tag</label><input style={S.input} {...f("topic_tag")} /></div>
+              <div><label style={S.label}>Difficulty</label>
+                <select style={S.input} value={form.difficulty} onChange={(e) => setForm({ ...form, difficulty: e.target.value })}>
+                  <option value="easy">Easy</option><option value="medium">Medium</option><option value="hard">Hard</option>
+                </select>
+              </div>
             </div>
-            <div><label style={S.label}>Year</label><input style={S.input} placeholder="2024" {...f("year")} /></div>
+            <label style={S.label}>Question text (use $...$ for LaTeX)</label>
+            <TipTapQuestionEditor
+              value={form.question_text}
+              onChange={(val) => setForm((prev) => ({ ...prev, question_text: val }))}
+            />
+            <QuestionImageUpload
+              imageUrl={form.image_url}
+              onUploadSuccess={(url) => setForm((prev) => ({ ...prev, image_url: url }))}
+              onRemove={() => setForm((prev) => ({ ...prev, image_url: null }))}
+              subject={form.subject}
+              setNumber={form.chapter || 1}
+              questionId={question?.id}
+            />
+            <div style={{ marginBottom: 12 }}>
+              <label style={S.label}>Option A</label>
+              <TipTapQuestionEditor
+                minHeight={45}
+                value={form.option_a}
+                onChange={(val) => setForm((prev) => ({ ...prev, option_a: val }))}
+              />
+            </div>
+            <div style={{ marginBottom: 12 }}>
+              <label style={S.label}>Option B</label>
+              <TipTapQuestionEditor
+                minHeight={45}
+                value={form.option_b}
+                onChange={(val) => setForm((prev) => ({ ...prev, option_b: val }))}
+              />
+            </div>
+            <div style={{ marginBottom: 12 }}>
+              <label style={S.label}>Option C</label>
+              <TipTapQuestionEditor
+                minHeight={45}
+                value={form.option_c}
+                onChange={(val) => setForm((prev) => ({ ...prev, option_c: val }))}
+              />
+            </div>
+            <div style={{ marginBottom: 12 }}>
+              <label style={S.label}>Option D</label>
+              <TipTapQuestionEditor
+                minHeight={45}
+                value={form.option_d}
+                onChange={(val) => setForm((prev) => ({ ...prev, option_d: val }))}
+              />
+            </div>
+            <div style={S.formRow}>
+              <div><label style={S.label}>Correct option</label>
+                <select style={S.input} value={form.correct_option} onChange={(e) => setForm({ ...form, correct_option: e.target.value })}>
+                  <option>A</option><option>B</option><option>C</option><option>D</option>
+                </select>
+              </div>
+              <div><label style={S.label}>Year</label><input style={S.input} placeholder="2024" {...f("year")} /></div>
+            </div>
+            <label style={S.label}>Concept / explanation</label>
+            <textarea style={{ ...S.input, height: 70 }} {...f("concept")} />
+            <label style={S.label}>Solution</label>
+            <TipTapQuestionEditor
+              minHeight={80}
+              value={form.solution || form.solution_steps || ''}
+              onChange={(val) => setForm((prev) => ({ ...prev, solution: val, solution_steps: val }))}
+            />
+            <label style={S.label}>Exam tip</label>
+            <textarea style={{ ...S.input, height: 50 }} {...f("exam_tip")} />
           </div>
-          <label style={S.label}>Concept / explanation</label>
-          <textarea style={{ ...S.input, height: 70 }} {...f("concept")} />
-          <label style={S.label}>Solution steps</label>
-          <textarea style={{ ...S.input, height: 70 }} {...f("solution_steps")} />
-          <label style={S.label}>Exam tip</label>
-          <textarea style={{ ...S.input, height: 50 }} {...f("exam_tip")} />
+
+          {showPreview && (
+            <div style={{ flex: 1, minWidth: 380, background: "#F8FAFC", padding: 24, overflowY: "auto" }}>
+              <div style={{ background: "#fff", border: "1px solid #E2E8F0", borderRadius: 8, boxShadow: "0 1px 3px rgba(0,0,0,0.05)", overflow: "hidden" }}>
+                <TestEngineQuestionView
+                  question={form}
+                  showSolution={true}
+                  previewLabel={true}
+                  radioGroupName="edit-preview-radio"
+                />
+              </div>
+            </div>
+          )}
         </div>
-        <div style={{ padding: "16px 24px", borderTop: "1px solid #e5e7eb", display: "flex", gap: 8, position: "sticky", bottom: 0, background: "#fff" }}>
+
+        <div style={{ padding: "16px 24px", borderTop: "1px solid #e5e7eb", display: "flex", gap: 8, background: "#fff", zIndex: 10, flexShrink: 0 }}>
           <button style={S.btn("primary")} onClick={save} disabled={saving}>{saving ? "Saving..." : "Save changes"}</button>
           <button style={S.btn()} onClick={onClose}>Cancel</button>
         </div>
@@ -395,9 +634,14 @@ function Questions({ toast }) {
   async function addQ() {
     if (!form.question_text || !form.subject) return alert("Subject and question text are required");
     try {
-      const { data, error } = await supabase.from("questions").insert([form]).select();
+      const { solution, ...restForm } = form;
+      const payload = {
+        ...restForm,
+        solution_steps: form.solution || form.solution_steps || "",
+      };
+      const { data, error } = await supabase.from("questions").insert([payload]).select();
       if (error) return alert("Add failed: " + error.message);
-      if (data && data[0]) setQuestions((prev) => [data[0], ...prev]);
+      if (data && data[0]) setQuestions((prev) => [{ ...data[0], solution: payload.solution_steps }, ...prev]);
       toast("Question added!");
       setForm(EMPTY_Q);
     } catch (err) {
@@ -465,7 +709,9 @@ function Questions({ toast }) {
                       <td style={S.td}><span style={S.badge("blue")}>{q.subject || "—"}</span></td>
                       <td style={{ ...S.td, color: "#6b7280" }}>{q.chapter || "—"}</td>
                       <td style={S.td}><span style={S.badge(q.difficulty === "hard" ? "red" : q.difficulty === "medium" ? "yellow" : "green")}>{q.difficulty || "—"}</span></td>
-                      <td style={{ ...S.td, maxWidth: 220, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{q.question_text || "—"}</td>
+                      <td style={{ ...S.td, maxWidth: 220, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                        <span dangerouslySetInnerHTML={{ __html: q.question_text || "—" }} />
+                      </td>
                       <td style={S.td}><span style={S.badge("gray")}>{q.correct_option || "—"}</span></td>
                       <td style={{ ...S.td, whiteSpace: "nowrap" }}>
                         <button style={{ ...S.btn(), ...S.btnSm, marginRight: 6 }} onClick={() => setEditingQ(q)}>✏ Edit</button>
@@ -497,7 +743,10 @@ function Questions({ toast }) {
             </div>
           </div>
           <label style={S.label}>Question text (use $...$ for LaTeX math)</label>
-          <textarea style={{ ...S.input, height: 72 }} placeholder="Find the value of $x^2 + y^2$ when..." value={form.question_text} onChange={(e) => setForm({ ...form, question_text: e.target.value })} />
+          <TipTapQuestionEditor
+            value={form.question_text}
+            onChange={(val) => setForm((prev) => ({ ...prev, question_text: val }))}
+          />
           <QuestionImageUpload
             imageUrl={form.image_url}
             onUploadSuccess={(url) => setForm((prev) => ({ ...prev, image_url: url }))}
@@ -505,13 +754,37 @@ function Questions({ toast }) {
             subject={form.subject}
             setNumber={form.chapter || 1}
           />
-          <div style={S.formRow}>
-            <div><label style={S.label}>Option A</label><input style={S.input} value={form.option_a} onChange={(e) => setForm({ ...form, option_a: e.target.value })} /></div>
-            <div><label style={S.label}>Option B</label><input style={S.input} value={form.option_b} onChange={(e) => setForm({ ...form, option_b: e.target.value })} /></div>
+          <div style={{ marginBottom: 12 }}>
+            <label style={S.label}>Option A</label>
+            <TipTapQuestionEditor
+              minHeight={45}
+              value={form.option_a}
+              onChange={(val) => setForm((prev) => ({ ...prev, option_a: val }))}
+            />
           </div>
-          <div style={S.formRow}>
-            <div><label style={S.label}>Option C</label><input style={S.input} value={form.option_c} onChange={(e) => setForm({ ...form, option_c: e.target.value })} /></div>
-            <div><label style={S.label}>Option D</label><input style={S.input} value={form.option_d} onChange={(e) => setForm({ ...form, option_d: e.target.value })} /></div>
+          <div style={{ marginBottom: 12 }}>
+            <label style={S.label}>Option B</label>
+            <TipTapQuestionEditor
+              minHeight={45}
+              value={form.option_b}
+              onChange={(val) => setForm((prev) => ({ ...prev, option_b: val }))}
+            />
+          </div>
+          <div style={{ marginBottom: 12 }}>
+            <label style={S.label}>Option C</label>
+            <TipTapQuestionEditor
+              minHeight={45}
+              value={form.option_c}
+              onChange={(val) => setForm((prev) => ({ ...prev, option_c: val }))}
+            />
+          </div>
+          <div style={{ marginBottom: 12 }}>
+            <label style={S.label}>Option D</label>
+            <TipTapQuestionEditor
+              minHeight={45}
+              value={form.option_d}
+              onChange={(val) => setForm((prev) => ({ ...prev, option_d: val }))}
+            />
           </div>
           <div style={S.formRow}>
             <div><label style={S.label}>Correct option</label>
@@ -523,8 +796,12 @@ function Questions({ toast }) {
           </div>
           <label style={S.label}>Concept / explanation</label>
           <textarea style={{ ...S.input, height: 60 }} value={form.concept} onChange={(e) => setForm({ ...form, concept: e.target.value })} />
-          <label style={S.label}>Solution steps</label>
-          <textarea style={{ ...S.input, height: 60 }} value={form.solution_steps} onChange={(e) => setForm({ ...form, solution_steps: e.target.value })} />
+          <label style={S.label}>Solution</label>
+          <TipTapQuestionEditor
+            minHeight={80}
+            value={form.solution || form.solution_steps || ''}
+            onChange={(val) => setForm((prev) => ({ ...prev, solution: val, solution_steps: val }))}
+          />
           <label style={S.label}>Exam tip</label>
           <textarea style={{ ...S.input, height: 50 }} value={form.exam_tip} onChange={(e) => setForm({ ...form, exam_tip: e.target.value })} />
           <button style={S.btn("primary")} onClick={addQ}>+ Add question</button>
@@ -567,19 +844,27 @@ const EMPTY_MOCK_Q = {
   option_d: "",
   correct_option: 1,
   difficulty: "medium",
+  solution: "",
   solution_steps: "",
 };
 
 function MockEditDrawer({ question, onClose, onSave, sets = [] }) {
-  const [form, setForm] = useState({ ...EMPTY_MOCK_Q, ...question });
+  const [form, setForm] = useState({
+    ...EMPTY_MOCK_Q,
+    ...question,
+    solution: question?.solution || question?.solution_steps || "",
+    solution_steps: question?.solution_steps || question?.solution || "",
+  });
   const [saving, setSaving] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
 
   async function save() {
     if (!form.question_text || !form.subject) return alert("Subject and question text are required");
     setSaving(true);
-    const { id, created_at, ...fields } = form;
+    const { id, created_at, solution, ...fields } = form;
     const payload = {
       ...fields,
+      solution_steps: form.solution || form.solution_steps || "",
       set_number: Number(fields.set_number) || 1,
       correct_option: Number(fields.correct_option) || 1,
     };
@@ -591,7 +876,7 @@ function MockEditDrawer({ question, onClose, onSave, sets = [] }) {
         .select();
       setSaving(false);
       if (error) return alert("Save failed: " + error.message);
-      if (data && data[0]) onSave(data[0]);
+      if (data && data[0]) onSave({ ...data[0], solution: payload.solution_steps });
     } catch (err) {
       setSaving(false);
       alert("Save failed: " + err.message);
@@ -603,94 +888,160 @@ function MockEditDrawer({ question, onClose, onSave, sets = [] }) {
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 1000, display: "flex" }}>
       <div style={{ flex: 1, background: "rgba(0,0,0,0.3)" }} onClick={onClose} />
-      <div style={{ width: 560, background: "#fff", boxShadow: "-4px 0 24px rgba(0,0,0,0.1)", display: "flex", flexDirection: "column", overflowY: "auto" }}>
-        <div style={{ padding: "20px 24px", borderBottom: "1px solid #e5e7eb", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, background: "#fff", zIndex: 1 }}>
+      <div style={{ width: showPreview ? "min(1150px, 95vw)" : 560, background: "#fff", boxShadow: "-4px 0 24px rgba(0,0,0,0.1)", display: "flex", flexDirection: "column", maxHeight: "100vh", transition: "width 0.2s ease" }}>
+        <div style={{ padding: "16px 24px", borderBottom: "1px solid #e5e7eb", display: "flex", alignItems: "center", justifyContent: "space-between", background: "#fff", zIndex: 10, flexShrink: 0 }}>
           <div style={{ fontSize: 15, fontWeight: 600 }}>Edit mock question</div>
-          <button style={{ ...S.btn(), padding: "4px 10px", fontSize: 12 }} onClick={onClose}>✕ Close</button>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <button
+              type="button"
+              onClick={() => setShowPreview((prev) => !prev)}
+              style={{
+                background: "#F1F5F9",
+                color: "#0F172A",
+                border: "1px solid #E2E8F0",
+                padding: "4px 12px",
+                borderRadius: "6px",
+                fontSize: 12,
+                fontWeight: 600,
+                cursor: "pointer",
+              }}
+            >
+              Preview
+            </button>
+            <button style={{ ...S.btn(), padding: "4px 10px", fontSize: 12 }} onClick={onClose}>✕ Close</button>
+          </div>
         </div>
-        <div style={{ padding: 24, flex: 1 }}>
-          <div style={S.formRow}>
-            <div>
-              <label style={S.label}>Set Number</label>
-              <select
-                style={S.input}
-                value={form.set_number}
-                onChange={(e) => setForm({ ...form, set_number: Number(e.target.value) })}
-              >
-                {sets && sets.length > 0 ? (
-                  sets.map((s) => (
-                    <option key={s.set_number} value={s.set_number}>
-                      Set {s.set_number}{s.title ? ` - ${s.title}` : ""}
-                    </option>
-                  ))
-                ) : (
-                  Array.from({ length: 19 }, (_, i) => i + 1).map((n) => (
-                    <option key={n} value={n}>Set {n}</option>
-                  ))
-                )}
-              </select>
+
+        <div style={{ display: "flex", flex: 1, minHeight: 0, overflow: "hidden" }}>
+          <div style={{ width: showPreview ? 560 : "100%", maxWidth: "100%", flexShrink: 0, padding: 24, overflowY: "auto", borderRight: showPreview ? "1px solid #e5e7eb" : "none" }}>
+            <div style={S.formRow}>
+              <div>
+                <label style={S.label}>Set Number</label>
+                <select
+                  style={S.input}
+                  value={form.set_number}
+                  onChange={(e) => setForm({ ...form, set_number: Number(e.target.value) })}
+                >
+                  {sets && sets.length > 0 ? (
+                    sets.map((s) => (
+                      <option key={s.set_number} value={s.set_number}>
+                        Set {s.set_number}{s.title ? ` - ${s.title}` : ""}
+                      </option>
+                    ))
+                  ) : (
+                    Array.from({ length: 19 }, (_, i) => i + 1).map((n) => (
+                      <option key={n} value={n}>Set {n}</option>
+                    ))
+                  )}
+                </select>
+              </div>
+              <div>
+                <label style={S.label}>Subject</label>
+                <select
+                  style={S.input}
+                  value={form.subject}
+                  onChange={(e) => setForm({ ...form, subject: e.target.value })}
+                >
+                  <option value="">Select subject</option>
+                  <option value="General Aptitude">General Aptitude</option>
+                  <option value="Mathematics">Mathematics</option>
+                  <option value="Physics">Physics</option>
+                  <option value="Chemistry">Chemistry</option>
+                  <option value="English">English</option>
+                </select>
+              </div>
             </div>
-            <div>
-              <label style={S.label}>Subject</label>
-              <select
-                style={S.input}
-                value={form.subject}
-                onChange={(e) => setForm({ ...form, subject: e.target.value })}
-              >
-                <option value="">Select subject</option>
-                <option value="General Aptitude">General Aptitude</option>
-                <option value="Mathematics">Mathematics</option>
-                <option value="Physics">Physics</option>
-                <option value="Chemistry">Chemistry</option>
-                <option value="English">English</option>
-              </select>
+            <div style={S.formRow}>
+              <div>
+                <label style={S.label}>Difficulty</label>
+                <select style={S.input} value={form.difficulty || "medium"} onChange={(e) => setForm({ ...form, difficulty: e.target.value })}>
+                  <option value="easy">Easy</option>
+                  <option value="medium">Medium</option>
+                  <option value="hard">Hard</option>
+                </select>
+              </div>
+              <div>
+                <label style={S.label}>Correct Option</label>
+                <select
+                  style={S.input}
+                  value={form.correct_option}
+                  onChange={(e) => setForm({ ...form, correct_option: Number(e.target.value) })}
+                >
+                  <option value={1}>1 (A)</option>
+                  <option value={2}>2 (B)</option>
+                  <option value={3}>3 (C)</option>
+                  <option value={4}>4 (D)</option>
+                </select>
+              </div>
             </div>
-          </div>
-          <div style={S.formRow}>
-            <div>
-              <label style={S.label}>Difficulty</label>
-              <select style={S.input} value={form.difficulty || "medium"} onChange={(e) => setForm({ ...form, difficulty: e.target.value })}>
-                <option value="easy">Easy</option>
-                <option value="medium">Medium</option>
-                <option value="hard">Hard</option>
-              </select>
+            <label style={S.label}>Question text (use $...$ for LaTeX)</label>
+            <TipTapQuestionEditor
+              value={form.question_text}
+              onChange={(val) => setForm((prev) => ({ ...prev, question_text: val }))}
+            />
+            <QuestionImageUpload
+              imageUrl={form.image_url}
+              onUploadSuccess={(url) => setForm((prev) => ({ ...prev, image_url: url }))}
+              onRemove={() => setForm((prev) => ({ ...prev, image_url: null }))}
+              subject={form.subject}
+              setNumber={form.set_number}
+              questionId={question?.id}
+            />
+            <div style={{ marginBottom: 12 }}>
+              <label style={S.label}>Option A</label>
+              <TipTapQuestionEditor
+                minHeight={45}
+                value={form.option_a}
+                onChange={(val) => setForm((prev) => ({ ...prev, option_a: val }))}
+              />
             </div>
-            <div>
-              <label style={S.label}>Correct Option</label>
-              <select
-                style={S.input}
-                value={form.correct_option}
-                onChange={(e) => setForm({ ...form, correct_option: Number(e.target.value) })}
-              >
-                <option value={1}>1 (A)</option>
-                <option value={2}>2 (B)</option>
-                <option value={3}>3 (C)</option>
-                <option value={4}>4 (D)</option>
-              </select>
+            <div style={{ marginBottom: 12 }}>
+              <label style={S.label}>Option B</label>
+              <TipTapQuestionEditor
+                minHeight={45}
+                value={form.option_b}
+                onChange={(val) => setForm((prev) => ({ ...prev, option_b: val }))}
+              />
             </div>
+            <div style={{ marginBottom: 12 }}>
+              <label style={S.label}>Option C</label>
+              <TipTapQuestionEditor
+                minHeight={45}
+                value={form.option_c}
+                onChange={(val) => setForm((prev) => ({ ...prev, option_c: val }))}
+              />
+            </div>
+            <div style={{ marginBottom: 12 }}>
+              <label style={S.label}>Option D</label>
+              <TipTapQuestionEditor
+                minHeight={45}
+                value={form.option_d}
+                onChange={(val) => setForm((prev) => ({ ...prev, option_d: val }))}
+              />
+            </div>
+            <label style={S.label}>Solution</label>
+            <TipTapQuestionEditor
+              minHeight={80}
+              value={form.solution || form.solution_steps || ''}
+              onChange={(val) => setForm((prev) => ({ ...prev, solution: val, solution_steps: val }))}
+            />
           </div>
-          <label style={S.label}>Question text (use $...$ for LaTeX)</label>
-          <textarea style={{ ...S.input, height: 80 }} {...f("question_text")} />
-          <QuestionImageUpload
-            imageUrl={form.image_url}
-            onUploadSuccess={(url) => setForm((prev) => ({ ...prev, image_url: url }))}
-            onRemove={() => setForm((prev) => ({ ...prev, image_url: null }))}
-            subject={form.subject}
-            setNumber={form.set_number}
-            questionId={question?.id}
-          />
-          <div style={S.formRow}>
-            <div><label style={S.label}>Option A</label><input style={S.input} {...f("option_a")} /></div>
-            <div><label style={S.label}>Option B</label><input style={S.input} {...f("option_b")} /></div>
-          </div>
-          <div style={S.formRow}>
-            <div><label style={S.label}>Option C</label><input style={S.input} {...f("option_c")} /></div>
-            <div><label style={S.label}>Option D</label><input style={S.input} {...f("option_d")} /></div>
-          </div>
-          <label style={S.label}>Solution steps</label>
-          <textarea style={{ ...S.input, height: 80 }} {...f("solution_steps")} />
+
+          {showPreview && (
+            <div style={{ flex: 1, minWidth: 380, background: "#F8FAFC", padding: 24, overflowY: "auto" }}>
+              <div style={{ background: "#fff", border: "1px solid #E2E8F0", borderRadius: 8, boxShadow: "0 1px 3px rgba(0,0,0,0.05)", overflow: "hidden" }}>
+                <TestEngineQuestionView
+                  question={form}
+                  showSolution={true}
+                  previewLabel={true}
+                  radioGroupName="mock-edit-preview-radio"
+                />
+              </div>
+            </div>
+          )}
         </div>
-        <div style={{ padding: "16px 24px", borderTop: "1px solid #e5e7eb", display: "flex", gap: 8, position: "sticky", bottom: 0, background: "#fff" }}>
+
+        <div style={{ padding: "16px 24px", borderTop: "1px solid #e5e7eb", display: "flex", gap: 8, background: "#fff", zIndex: 10, flexShrink: 0 }}>
           <button style={S.btn("primary")} onClick={save} disabled={saving}>{saving ? "Saving..." : "Save changes"}</button>
           <button style={S.btn()} onClick={onClose}>Cancel</button>
         </div>
@@ -889,14 +1240,16 @@ function MockQuestions({ toast, role }) {
   async function addQ() {
     if (!form.question_text || !form.subject) return alert("Subject and question text are required");
     try {
+      const { solution, ...restForm } = form;
       const payload = {
-        ...form,
+        ...restForm,
+        solution_steps: form.solution || form.solution_steps || "",
         set_number: Number(form.set_number) || 1,
         correct_option: Number(form.correct_option) || 1,
       };
       const { data, error } = await supabase.from("mock_questions").insert([payload]).select();
       if (error) return alert("Add failed: " + error.message);
-      if (data && data[0]) setMockQuestions((prev) => [data[0], ...prev]);
+      if (data && data[0]) setMockQuestions((prev) => [{ ...data[0], solution: payload.solution_steps }, ...prev]);
       toast("Mock question added!");
       setForm(EMPTY_MOCK_Q);
       setTab("view");
@@ -1109,7 +1462,7 @@ function MockQuestions({ toast, role }) {
                             Diagram
                           </span>
                         )}
-                        {q.question_text}
+                        <span dangerouslySetInnerHTML={{ __html: q.question_text || "" }} />
                       </td>
                       <td style={S.td}>
                         <span style={S.badge("green")}>
@@ -1197,7 +1550,10 @@ function MockQuestions({ toast, role }) {
             </div>
 
             <label style={S.label}>Question text *</label>
-            <textarea style={{ ...S.input, height: 80 }} placeholder="Type question..." {...f("question_text")} />
+            <TipTapQuestionEditor
+              value={form.question_text}
+              onChange={(val) => setForm((prev) => ({ ...prev, question_text: val }))}
+            />
             <QuestionImageUpload
               imageUrl={form.image_url}
               onUploadSuccess={(url) => setForm((prev) => ({ ...prev, image_url: url }))}
@@ -1206,17 +1562,45 @@ function MockQuestions({ toast, role }) {
               setNumber={form.set_number}
             />
 
-            <div style={S.formRow}>
-              <div><label style={S.label}>Option A</label><input style={S.input} placeholder="Option A text" {...f("option_a")} /></div>
-              <div><label style={S.label}>Option B</label><input style={S.input} placeholder="Option B text" {...f("option_b")} /></div>
+            <div style={{ marginBottom: 12 }}>
+              <label style={S.label}>Option A</label>
+              <TipTapQuestionEditor
+                minHeight={45}
+                value={form.option_a}
+                onChange={(val) => setForm((prev) => ({ ...prev, option_a: val }))}
+              />
             </div>
-            <div style={S.formRow}>
-              <div><label style={S.label}>Option C</label><input style={S.input} placeholder="Option C text" {...f("option_c")} /></div>
-              <div><label style={S.label}>Option D</label><input style={S.input} placeholder="Option D text" {...f("option_d")} /></div>
+            <div style={{ marginBottom: 12 }}>
+              <label style={S.label}>Option B</label>
+              <TipTapQuestionEditor
+                minHeight={45}
+                value={form.option_b}
+                onChange={(val) => setForm((prev) => ({ ...prev, option_b: val }))}
+              />
+            </div>
+            <div style={{ marginBottom: 12 }}>
+              <label style={S.label}>Option C</label>
+              <TipTapQuestionEditor
+                minHeight={45}
+                value={form.option_c}
+                onChange={(val) => setForm((prev) => ({ ...prev, option_c: val }))}
+              />
+            </div>
+            <div style={{ marginBottom: 12 }}>
+              <label style={S.label}>Option D</label>
+              <TipTapQuestionEditor
+                minHeight={45}
+                value={form.option_d}
+                onChange={(val) => setForm((prev) => ({ ...prev, option_d: val }))}
+              />
             </div>
 
-            <label style={S.label}>Solution steps</label>
-            <textarea style={{ ...S.input, height: 80 }} placeholder="Step-by-step solution / explanation..." {...f("solution_steps")} />
+            <label style={S.label}>Solution</label>
+            <TipTapQuestionEditor
+              minHeight={80}
+              value={form.solution || form.solution_steps || ''}
+              onChange={(val) => setForm((prev) => ({ ...prev, solution: val, solution_steps: val }))}
+            />
 
             <div style={{ marginTop: 12 }}>
               <button style={S.btn("primary")} onClick={addQ}>Add mock question</button>

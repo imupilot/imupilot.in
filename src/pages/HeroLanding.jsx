@@ -188,12 +188,12 @@ export default function HeroLanding() {
                         <span style={{ width: 24, height: 24, borderRadius: "50%", flexShrink: 0, fontSize: 11, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", border: "1.5px solid #E4E1D9", background: answered && isCorrect ? "#2D6A2D" : answered && isSelected ? "#A32D2D" : "#fff", color: answered && (isCorrect || isSelected) ? "#fff" : "#718096" }}>
                           {["A", "B", "C", "D"][i]}
                         </span>
-                        {opt}
+                        <span className="option-content" dangerouslySetInnerHTML={{ __html: opt }} />
                       </button>
                     );
                   })}
                 </div>
-                {answered && <div style={{ marginTop: 12, padding: "10px 14px", borderRadius: 10, background: selectedOpt === f.preview.correct ? "#EAF3EA" : "#FFF3CD", fontSize: 13, color: selectedOpt === f.preview.correct ? "#2D6A2D" : "#856404", fontWeight: 500 }}>{selectedOpt === f.preview.correct ? "✓ Correct! " : "✗ Incorrect. "}{f.preview.solution}</div>}
+                {answered && <div className="solution-content" style={{ marginTop: 12, padding: "10px 14px", borderRadius: 10, background: selectedOpt === f.preview.correct ? "#EAF3EA" : "#FFF3CD", fontSize: 13, color: selectedOpt === f.preview.correct ? "#2D6A2D" : "#856404", fontWeight: 500 }}><span>{selectedOpt === f.preview.correct ? "✓ Correct! " : "✗ Incorrect. "}</span><span dangerouslySetInnerHTML={{ __html: f.preview.solution }} /></div>}
               </div>
             )}
 
