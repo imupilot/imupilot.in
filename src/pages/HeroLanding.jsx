@@ -14,17 +14,17 @@ const ANIMATED_LINES = [
 const FEATURES = [
   {
     id: "mocks", title: "Full Mock Tests", sub: "200 questions, real IMUCET pattern",
-    icon: <svg width="22" height="22" fill="none" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3" stroke="#fff" strokeWidth="1.8"/><path d="M8 9l2 2 4-4" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/><path d="M8 15h8" stroke="#fff" strokeWidth="1.5" strokeLinecap="round"/></svg>,
+    icon: <svg width="22" height="22" fill="none" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3" stroke="#fff" strokeWidth="1.8" /><path d="M8 9l2 2 4-4" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /><path d="M8 15h8" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" /></svg>,
     preview: { label: "IMUCET · Physics", q: "A charge of 8.85 μC is enclosed in a closed surface. The total electric flux through the surface is:", opts: ["10⁷ Nm²/C", "8.85 × 10⁷ Nm²/C", "10⁶ Nm²/C", "8.85 × 10⁶ Nm²/C"], correct: 3, solution: "Apply Gauss's Law: φ = Q/ε₀ = 8.85×10⁻⁶ / 8.85×10⁻¹² = 10⁶ Nm²/C." },
   },
   {
     id: "notes", title: "Topic Notes", sub: "NCERT-based, chapter by chapter",
-    icon: <svg width="22" height="22" fill="none" viewBox="0 0 24 24"><path d="M6 3h12a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V5a2 2 0 012-2z" stroke="#fff" strokeWidth="1.8"/><path d="M8 7h8M8 11h8M8 15h5" stroke="#fff" strokeWidth="1.5" strokeLinecap="round"/></svg>,
+    icon: <svg width="22" height="22" fill="none" viewBox="0 0 24 24"><path d="M6 3h12a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V5a2 2 0 012-2z" stroke="#fff" strokeWidth="1.8" /><path d="M8 7h8M8 11h8M8 15h5" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" /></svg>,
     preview: { chapter: "Ch1: Electric Charges & Fields", points: ["Coulomb's Law: F = kq₁q₂/r²", "Electric field E = F/q₀", "Gauss's Law: φ = Q_enc / ε₀", "Field lines go from + to −", "Superposition principle applies"] },
   },
   {
     id: "analytics", title: "Smart Analytics", sub: "See your weak topics instantly",
-    icon: <svg width="22" height="22" fill="none" viewBox="0 0 24 24"><path d="M4 20V14M9 20V8M14 20V12M19 20V4" stroke="#fff" strokeWidth="1.8" strokeLinecap="round"/></svg>,
+    icon: <svg width="22" height="22" fill="none" viewBox="0 0 24 24"><path d="M4 20V14M9 20V8M14 20V12M19 20V4" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" /></svg>,
     preview: { subjects: [{ name: "Physics", score: 72, color: "#60A5FA" }, { name: "Mathematics", score: 45, color: "#F87171" }, { name: "Chemistry", score: 84, color: "#34D399" }, { name: "English", score: 90, color: "#A78BFA" }] },
   },
 ];
@@ -112,33 +112,33 @@ export default function HeroLanding() {
       {/* HERO */}
       <section style={{ padding: isMobile ? "32px 16px 40px" : "clamp(40px, 5vw, 60px) clamp(16px, 4vw, 40px) clamp(48px, 6vw, 72px)" }}>
         <div style={{ width: "100%", maxWidth: 1200, boxSizing: "border-box", margin: "0 auto", textAlign: "center" }}>
-        <h1 style={{ fontSize: isMobile ? "3.5rem" : "clamp(4rem,9vw,8rem)", fontWeight: 700, lineHeight: 1.0, letterSpacing: "-0.04em", margin: "0 0 8px", color: "#0D1B2A" }}>Crack</h1>
-        <h1 style={{ fontSize: isMobile ? "3.5rem" : "clamp(4rem,9vw,8rem)", fontWeight: 700, lineHeight: 1.0, letterSpacing: "-0.04em", margin: "0 0 28px", color: "#1B3A6B" }}>IMUCET</h1>
+          <h1 style={{ fontSize: isMobile ? "3.5rem" : "clamp(4rem,9vw,8rem)", fontWeight: 700, lineHeight: 1.0, letterSpacing: "-0.04em", margin: "0 0 8px", color: "#0D1B2A" }}>Crack</h1>
+          <h1 style={{ fontSize: isMobile ? "3.5rem" : "clamp(4rem,9vw,8rem)", fontWeight: 700, lineHeight: 1.0, letterSpacing: "-0.04em", margin: "0 0 28px", color: "#1B3A6B" }}>IMUCET</h1>
 
-        {/* Dark card */}
-        <div style={{ width: "100%", boxSizing: "border-box", borderRadius: isMobile ? 16 : 24, background: "#0D2442", overflow: "hidden", textAlign: "center" }}>
-          {/* Service tags */}
-          <div style={{ display: "flex", flexWrap: "wrap", borderBottom: "1px solid rgba(255,255,255,0.08)", padding: isMobile ? "0 16px" : "0 40px" }}>
-            {["Full Mocks", "Sectional Tests", "Topic Notes", "Smart Analytics", "Past Year Papers"].map((s, i) => (
-              <div key={s} style={{ padding: isMobile ? "12px 8px" : "18px 0", marginRight: isMobile ? 12 : 0, flex: isMobile ? "none" : 1, textAlign: "center", borderRight: !isMobile && i < 4 ? "1px solid rgba(255,255,255,0.08)" : "none" }}>
-                <span style={{ fontSize: isMobile ? 12 : 15, fontWeight: 600, color: "rgba(255,255,255,0.9)" }}>{s}</span>
-              </div>
-            ))}
-          </div>
-
-          {/* Bottom */}
-          <div style={{ padding: isMobile ? "24px 16px" : "clamp(32px, 4vw, 48px) clamp(24px, 4vw, 40px) 40px" }}>
-            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.45)", marginBottom: 12 }}>CRACK IMUCET</div>
-            <div style={{ minHeight: 52, overflow: "hidden", margin: "0 auto 20px", maxWidth: 720 }}>
-              <p style={{ fontSize: isMobile ? "1rem" : "clamp(1.2rem,2.5vw,1.6rem)", fontWeight: 500, color: "#fff", margin: 0, lineHeight: 1.4, opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(10px)", transition: "opacity 0.35s ease, transform 0.35s ease" }}>
-                {ANIMATED_LINES[lineIdx]}
-              </p>
+          {/* Dark card */}
+          <div style={{ width: "100%", boxSizing: "border-box", borderRadius: isMobile ? 16 : 24, background: "#0D2442", overflow: "hidden", textAlign: "center" }}>
+            {/* Service tags */}
+            <div style={{ display: "flex", flexWrap: "wrap", borderBottom: "1px solid rgba(255,255,255,0.08)", padding: isMobile ? "0 16px" : "0 40px" }}>
+              {["Full Mocks", "Sectional Tests", "Topic Notes", "Smart Analytics", "Past Year Papers"].map((s, i) => (
+                <div key={s} style={{ padding: isMobile ? "12px 8px" : "18px 0", marginRight: isMobile ? 12 : 0, flex: isMobile ? "none" : 1, textAlign: "center", borderRight: !isMobile && i < 4 ? "1px solid rgba(255,255,255,0.08)" : "none" }}>
+                  <span style={{ fontSize: isMobile ? 12 : 15, fontWeight: 600, color: "rgba(255,255,255,0.9)" }}>{s}</span>
+                </div>
+              ))}
             </div>
-            <button onClick={() => navigate("/auth")} style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)", borderRadius: 12, padding: "14px 20px", cursor: "pointer", color: "#fff", fontFamily: "inherit", fontWeight: 600, fontSize: 14, display: "block", width: isMobile ? "100%" : "auto", margin: "0 auto" }}>
-              Ready to Crack IMUCET? Get started →
-            </button>
+
+            {/* Bottom */}
+            <div style={{ padding: isMobile ? "24px 16px" : "clamp(32px, 4vw, 48px) clamp(24px, 4vw, 40px) 40px" }}>
+              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.45)", marginBottom: 12 }}>CRACK IMUCET</div>
+              <div style={{ minHeight: 52, overflow: "hidden", margin: "0 auto 20px", maxWidth: 720 }}>
+                <p style={{ fontSize: isMobile ? "1rem" : "clamp(1.2rem,2.5vw,1.6rem)", fontWeight: 500, color: "#fff", margin: 0, lineHeight: 1.4, opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(10px)", transition: "opacity 0.35s ease, transform 0.35s ease" }}>
+                  {ANIMATED_LINES[lineIdx]}
+                </p>
+              </div>
+              <button onClick={() => navigate("/auth")} style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)", borderRadius: 12, padding: "14px 20px", cursor: "pointer", color: "#fff", fontFamily: "inherit", fontWeight: 600, fontSize: 14, display: "block", width: isMobile ? "100%" : "auto", margin: "0 auto" }}>
+                Ready to Crack IMUCET? Get started →
+              </button>
+            </div>
           </div>
-        </div>
         </div>
       </section>
 
@@ -166,7 +166,7 @@ export default function HeroLanding() {
           {/* Preview */}
           <div style={{ borderRadius: 16, border: "1.5px solid #E4E1D9", background: "#fff", overflow: "hidden", boxShadow: "0 4px 24px rgba(13,36,66,0.07)" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "10px 16px", background: "#F5F4F0", borderBottom: "1px solid #E4E1D9" }}>
-              {["#FF5F57","#FFBD2E","#28CA41"].map(c => <span key={c} style={{ width: 10, height: 10, borderRadius: "50%", background: c, display: "inline-block" }} />)}
+              {["#FF5F57", "#FFBD2E", "#28CA41"].map(c => <span key={c} style={{ width: 10, height: 10, borderRadius: "50%", background: c, display: "inline-block" }} />)}
               <div style={{ flex: 1, marginLeft: 8, background: "#fff", borderRadius: 6, padding: "3px 12px", fontSize: 11, color: "#9CA3AF", fontFamily: "monospace", border: "1px solid #E4E1D9" }}>imupilot.in</div>
             </div>
 
@@ -186,7 +186,7 @@ export default function HeroLanding() {
                     return (
                       <button key={i} onClick={() => { if (!answered) { setSelectedOpt(i); setAnswered(true); } }} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", borderRadius: 10, cursor: answered ? "default" : "pointer", textAlign: "left", width: "100%", fontFamily: "inherit", fontSize: 13, background: bg, border, transition: "all 0.15s" }}>
                         <span style={{ width: 24, height: 24, borderRadius: "50%", flexShrink: 0, fontSize: 11, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", border: "1.5px solid #E4E1D9", background: answered && isCorrect ? "#2D6A2D" : answered && isSelected ? "#A32D2D" : "#fff", color: answered && (isCorrect || isSelected) ? "#fff" : "#718096" }}>
-                          {["A","B","C","D"][i]}
+                          {["A", "B", "C", "D"][i]}
                         </span>
                         {opt}
                       </button>
@@ -203,7 +203,7 @@ export default function HeroLanding() {
                 <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                   {f.preview.points.map((pt, i) => (
                     <div key={i} style={{ display: "flex", gap: 10, padding: "10px 14px", background: "#F5F4F0", borderRadius: 10 }}>
-                      <div style={{ width: 20, height: 20, borderRadius: "50%", background: "#0D2442", color: "#fff", fontSize: 10, fontWeight: 700, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>{i+1}</div>
+                      <div style={{ width: 20, height: 20, borderRadius: "50%", background: "#0D2442", color: "#fff", fontSize: 10, fontWeight: 700, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>{i + 1}</div>
                       <span style={{ fontSize: 13, color: "#0D1B2A", lineHeight: 1.5 }}>{pt}</span>
                     </div>
                   ))}

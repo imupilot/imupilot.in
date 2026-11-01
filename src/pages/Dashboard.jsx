@@ -170,6 +170,104 @@ export default function Dashboard() {
       .slice(0, 4);
   }, [latestTest]);
 
+  const overallPrepScore = useMemo(() => {
+    const accuracy = metrics.accuracy !== null ? metrics.accuracy : 0;
+    const testsTaken = metrics.testsTaken;
+    const dailyProgress = metrics.dailyProgress;
+    const score = Math.round(
+      (accuracy * 0.5) +
+      (Math.min(testsTaken / 10, 1) * 100 * 0.3) +
+      (dailyProgress * 0.2)
+    );
+    return Math.max(0, Math.min(100, score));
+  }, [metrics]);
+
+  const syllabusCoverage = useMemo(() => {
+    const SYLLABUS_SUBJECTS = ["Physics", "Chemistry", "Mathematics", "English", "General Aptitude"];
+    const attempted = new Set();
+
+    history.forEach(test => {
+      if (!test?.subjectBreakdown || typeof test.subjectBreakdown !== "object") return;
+      Object.keys(test.subjectBreakdown).forEach(key => {
+        if (SYLLABUS_SUBJECTS.includes(key)) {
+          attempted.add(key);
+        } else if (/aptitude/i.test(key)) {
+          attempted.add("General Aptitude");
+        } else if (/math/i.test(key)) {
+          attempted.add("Mathematics");
+        } else if (/physic/i.test(key)) {
+          attempted.add("Physics");
+        } else if (/chem/i.test(key)) {
+          attempted.add("Chemistry");
+        } else if (/eng/i.test(key)) {
+          attempted.add("English");
+        }
+      });
+    });
+
+    return attempted.size;
+  }, [history]);
+
+  const studyStreak = useMemo(() => {
+    if (!history.length) return 0;
+    const testDays = new Set();
+    history.forEach(t => {
+      if (t?.completedAt) {
+        const d = new Date(t.completedAt);
+        if (!isNaN(d.getTime())) {
+          testDays.add(d.toDateString());
+        }
+      }
+    });
+
+    const today = new Date();
+    if (!testDays.has(today.toDateString())) {
+      return 0;
+    }
+
+    let streak = 0;
+    const current = new Date(today);
+    while (testDays.has(current.toDateString())) {
+      streak += 1;
+      current.setDate(current.getDate() - 1);
+    }
+    return streak;
+  }, [history]);
+
+  const nextAction = useMemo(() => {
+    const acc = metrics.accuracy;
+    if (acc !== null && acc < 60) {
+      return {
+        title: "Focus on weak subjects",
+        caption: "Review topics and concepts where your accuracy is below 60%.",
+        buttonText: "Review weak areas",
+        onClick: () => navigate("/revise"),
+      };
+    }
+    if (metrics.testsTaken < 3) {
+      return {
+        title: "Take more mock tests",
+        caption: "Complete at least 3 mock tests to gauge your baseline readiness.",
+        buttonText: "Browse mock tests",
+        onClick: () => navigate("/test"),
+      };
+    }
+    if (metrics.dailyProgress < 50) {
+      return {
+        title: "Complete today’s target",
+        caption: "Solve practice questions to reach your 20-question daily target.",
+        buttonText: "Practice now",
+        onClick: () => navigate("/test/sectional"),
+      };
+    }
+    return {
+      title: "You’re on track! Keep going",
+      caption: "You are maintaining good consistency. Continue regular practice.",
+      buttonText: "Take another mock",
+      onClick: () => navigate("/test"),
+    };
+  }, [metrics, navigate]);
+
   const trend = history.slice(0, 7).reverse();
   const userName = user?.name || "Student";
   const firstName = userName.trim().split(/\s+/)[0] || "Student";
@@ -274,6 +372,174 @@ export default function Dashboard() {
               </Card>
             ))}
           </div>
+
+          {/* Preparation Progress Card */}
+          <Card style={{ marginBottom: 26, padding: isMobile ? 18 : 24 }}>
+            <SectionHeading eyebrow="OVERVIEW" title="Preparation Progress" />
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: isMobile ? "1fr" : "200px minmax(0, 1.2fr) minmax(0, 1.3fr)",
+                gap: isMobile ? 22 : 28,
+                alignItems: "center",
+              }}
+            >
+              {/* Column 1: Overall Score */}
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  textAlign: "center",
+                  padding: isMobile ? "6px 0" : "0 12px 0 0",
+                  borderRight: !isMobile ? "1px solid #E2E8F0" : "none",
+                  borderBottom: isMobile ? "1px solid #E2E8F0" : "none",
+                  paddingBottom: isMobile ? 18 : 0,
+                }}
+              >
+                <div style={{ position: "relative", width: 104, height: 104 }}>
+                  <svg width="104" height="104" viewBox="0 0 100 100" style={{ transform: "rotate(-90deg)" }} aria-label="Overall Preparation Score">
+                    <circle
+                      cx="50"
+                      cy="50"
+                      r="40"
+                      fill="none"
+                      stroke="#F1F5F9"
+                      strokeWidth="8"
+                    />
+                    <circle
+                      cx="50"
+                      cy="50"
+                      r="40"
+                      fill="none"
+                      stroke="#0F172A"
+                      strokeWidth="8"
+                      strokeDasharray={251.33}
+                      strokeDashoffset={251.33 - (overallPrepScore / 100) * 251.33}
+                      strokeLinecap="round"
+                      style={{ transition: "stroke-dashoffset 0.5s ease" }}
+                    />
+                  </svg>
+                  <div
+                    style={{
+                      position: "absolute",
+                      inset: 0,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: 22,
+                      fontWeight: 700,
+                      color: "#0F172A",
+                      letterSpacing: "-0.03em",
+                    }}
+                  >
+                    {overallPrepScore}%
+                  </div>
+                </div>
+                <div style={{ marginTop: 8, color: "#64748B", fontSize: 13, fontWeight: 600 }}>
+                  Overall Score
+                </div>
+              </div>
+
+              {/* Column 2: Two stacked mini-stats */}
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 18,
+                  justifyContent: "center",
+                  padding: isMobile ? "0" : "0 14px",
+                  borderRight: !isMobile ? "1px solid #E2E8F0" : "none",
+                  borderBottom: isMobile ? "1px solid #E2E8F0" : "none",
+                  paddingBottom: isMobile ? 18 : 0,
+                }}
+              >
+                {/* Syllabus Coverage */}
+                <div>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 6 }}>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: "#64748B" }}>Syllabus Coverage</span>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: "#0F172A" }}>{syllabusCoverage}/5 subjects</span>
+                  </div>
+                  <div style={{ height: 7, borderRadius: 999, background: "#F1F5F9", overflow: "hidden" }}>
+                    <div
+                      style={{
+                        width: `${(syllabusCoverage / 5) * 100}%`,
+                        height: "100%",
+                        borderRadius: 999,
+                        background: "#0F172A",
+                        transition: "width 0.3s ease",
+                      }}
+                    />
+                  </div>
+                  <div style={{ marginTop: 4, fontSize: 11, color: "#94A3B8" }}>
+                    {syllabusCoverage}/5 subjects attempted
+                  </div>
+                </div>
+
+                {/* Study Streak */}
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: "#64748B", marginBottom: 4 }}>
+                    Study Streak
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <span style={{ fontSize: 20 }}>🔥</span>
+                    <span style={{ fontSize: 18, fontWeight: 700, color: "#0F172A" }}>
+                      {studyStreak} {studyStreak === 1 ? "day" : "days"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Column 3: Next action recommendation */}
+              <div
+                style={{
+                  background: "#F8FAFC",
+                  border: "1px solid #E2E8F0",
+                  borderRadius: 14,
+                  padding: "16px 18px",
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "space-between",
+                  minHeight: 124,
+                }}
+              >
+                <div>
+                  <div style={{ color: "#64748B", fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 5 }}>
+                    Next Action
+                  </div>
+                  <div style={{ color: "#0F172A", fontSize: 15, fontWeight: 650, letterSpacing: "-0.02em", marginBottom: 4 }}>
+                    {nextAction.title}
+                  </div>
+                  <div style={{ color: "#64748B", fontSize: 12, lineHeight: 1.4, marginBottom: 14 }}>
+                    {nextAction.caption}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={nextAction.onClick}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 8,
+                    padding: "9px 15px",
+                    border: 0,
+                    borderRadius: 10,
+                    background: "#0F172A",
+                    color: "#FFFFFF",
+                    fontSize: 12,
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    font: "inherit",
+                    width: "fit-content",
+                  }}
+                >
+                  {nextAction.buttonText} <ArrowRight size={14} />
+                </button>
+              </div>
+            </div>
+          </Card>
 
           <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "minmax(0,1.7fr) minmax(250px,.8fr)", gap: 16, marginBottom: 16 }}>
             <Card>

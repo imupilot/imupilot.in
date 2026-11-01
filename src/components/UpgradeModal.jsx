@@ -25,21 +25,33 @@ export default function UpgradeModal({
     try {
       setLoading(true);
       let targetUserId = userId;
-      if (!targetUserId) {
-        const { data: authData } = await supabase.auth.getUser();
-        targetUserId = authData?.user?.id;
-        if (!targetUserId) {
-          try {
-            const localUser = JSON.parse(localStorage.getItem('user') || '{}');
-            targetUserId = localUser?.id;
-          } catch (e) {}
-        }
+      let targetEmail = null;
+      let targetName = null;
+
+      const { data: authData } = await supabase.auth.getUser();
+      if (authData?.user) {
+        targetUserId = authData.user.id;
+        targetEmail = authData.user.email;
+        targetName = authData.user.user_metadata?.full_name || authData.user.user_metadata?.name;
+      }
+
+      if (!targetUserId || !targetEmail || !targetName) {
+        try {
+          const localUser = JSON.parse(localStorage.getItem('user') || '{}');
+          if (!targetUserId) targetUserId = localUser?.id;
+          if (!targetEmail) targetEmail = localUser?.email;
+          if (!targetName) targetName = localUser?.name || localUser?.full_name;
+        } catch (e) {}
       }
 
       const res = await fetch('/api/create-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: targetUserId }),
+        body: JSON.stringify({
+          userId: targetUserId,
+          email: targetEmail,
+          name: targetName,
+        }),
       });
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));

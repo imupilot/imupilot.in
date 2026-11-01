@@ -142,6 +142,16 @@ export default function Auth() {
         setLoading(false);
         return;
       }
+
+      const email = form.email.trim();
+      const name = form.full_name.trim();
+
+      fetch('/api/send-welcome', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, name }),
+      }).catch(err => console.error('Welcome email failed:', err));
+
       if (data.user) {
         const { error: profileError } = await supabase.from('profiles').upsert({
           id: data.user.id,
