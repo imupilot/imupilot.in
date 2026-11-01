@@ -35,7 +35,6 @@ const NAV = [
     { id: "notes",     label: "Notes",           icon: "notes",     path: "/notes" },
     { id: "pricing",   label: "Pricing",         icon: "pricing",   path: "/pricing" },
     { id: "analytics", label: "Analytics",       icon: "analytics", path: "/analytics" },
-    { id: "learn",     label: "Learn",           icon: "notes",     path: "/learn" },
     { id: "planner",   label: "Planner",         icon: "planner",   path: "/planner" },
   ]},
   { section: "PRACTICE", items: [

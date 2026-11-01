@@ -232,6 +232,14 @@ export default function TestResult() {
                   {/* Question Text */}
                   <p className="text-gray-900 font-medium text-base leading-relaxed mb-5">{q.text}</p>
 
+                  {q.image_url && (
+                    <img
+                      src={q.image_url}
+                      alt="Question diagram"
+                      style={{ maxWidth: '100%', maxHeight: '300px', borderRadius: '8px', margin: '12px 0', border: '1px solid #E2E8F0' }}
+                    />
+                  )}
+
                   {/* Options */}
                   <div className="space-y-2.5 mb-6">
                     {q.options.map((optText, optIdx) => {

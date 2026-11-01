@@ -715,6 +715,14 @@ export default function MockTestEngine() {
                 <MathText text={currentQ.text || currentQ.question_text} />
               </div>
 
+              {currentQ?.image_url && (
+                <img
+                  src={currentQ.image_url}
+                  alt="Question diagram"
+                  style={{ maxWidth: '100%', maxHeight: '300px', borderRadius: '8px', margin: '12px 0', border: '1px solid #E2E8F0' }}
+                />
+              )}
+
               <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                 {['option_a', 'option_b', 'option_c', 'option_d'].map((optKey, idx) => {
                   const label = ['A', 'B', 'C', 'D'][idx];

@@ -698,6 +698,197 @@ const SYLLABUS = [
 // Active/highlight: #0F172A
 // STRICT RULE: Absolutely NO green, red, orange, or purple!
 
+const SUBJECT_STORAGE_FOLDER = {
+  mathematics: 'Mathematics',
+  physics: 'Physics',
+  chemistry: 'Chemistry',
+  aptitude: 'Aptitude',
+  english: 'English',
+};
+
+// ─── PROTECTED PDF VIEWER MODAL ───────────────────────────────────────────────
+function ProtectedPdfModal({ isOpen, onClose, pdfUrl, title }) {
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleKeyDown = (e) => {
+      const isCtrlOrCmd = e.ctrlKey || e.metaKey;
+      const key = e.key.toLowerCase();
+
+      // Block Ctrl+S, Ctrl+P, Ctrl+Shift+I, F12, Ctrl+U
+      if (
+        (isCtrlOrCmd && key === 's') ||
+        (isCtrlOrCmd && key === 'p') ||
+        (isCtrlOrCmd && e.shiftKey && key === 'i') ||
+        (isCtrlOrCmd && e.shiftKey && key === 'c') ||
+        (isCtrlOrCmd && key === 'u') ||
+        e.key === 'F12'
+      ) {
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown, true);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown, true);
+    };
+  }, [isOpen]);
+
+  if (!isOpen || !pdfUrl) return null;
+
+  return (
+    <div
+      onContextMenu={(e) => e.preventDefault()}
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 9999,
+        background: 'rgba(15, 23, 42, 0.92)',
+        backdropFilter: 'blur(4px)',
+        display: 'flex',
+        flexDirection: 'column',
+        fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+        userSelect: 'none',
+        WebkitUserSelect: 'none',
+      }}
+    >
+      {/* Top Header Bar */}
+      <div
+        style={{
+          background: '#0F172A',
+          color: '#FFFFFF',
+          borderBottom: '1px solid #334155',
+          padding: '12px 24px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexShrink: 0,
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+          <div
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: 6,
+              background: '#1E293B',
+              border: '1px solid #475569',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+            </svg>
+          </div>
+          <div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: '#FFFFFF' }}>
+              {title || 'Chapter Notes PDF'}
+            </div>
+            <div style={{ fontSize: 11, color: '#94A3B8', marginTop: 1 }}>
+              Protected content — downloading disabled
+            </div>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <span
+            style={{
+              fontSize: 11,
+              fontWeight: 600,
+              color: '#CBD5E1',
+              background: '#1E293B',
+              border: '1px solid #334155',
+              padding: '4px 10px',
+              borderRadius: 6,
+            }}
+          >
+            IMUpilot Pro Reader
+          </span>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close PDF Viewer"
+            style={{
+              background: '#FFFFFF',
+              color: '#0F172A',
+              border: 'none',
+              borderRadius: 8,
+              padding: '6px 14px',
+              fontSize: 13,
+              fontWeight: 700,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+            }}
+          >
+            <span>Close</span>
+            <span>✕</span>
+          </button>
+        </div>
+      </div>
+
+      {/* PDF View Container */}
+      <div
+        style={{
+          flex: 1,
+          position: 'relative',
+          width: '100%',
+          height: '100%',
+          background: '#0F172A',
+          overflow: 'hidden',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          userSelect: 'none',
+          WebkitUserSelect: 'none',
+        }}
+        onContextMenu={(e) => e.preventDefault()}
+      >
+        {/* Iframe content wrapper with CSS: user-select: none, pointer-events: none */}
+        <div
+          style={{
+            width: '100%',
+            height: '100%',
+            userSelect: 'none',
+            WebkitUserSelect: 'none',
+            pointerEvents: 'none',
+          }}
+        >
+          <iframe
+            src={`${pdfUrl}#toolbar=0&navpanes=0`}
+            title={title || 'Protected Notes PDF'}
+            style={{
+              width: '100%',
+              height: '100%',
+              border: 'none',
+            }}
+          />
+        </div>
+
+        {/* Transparent overlay covering the iframe */}
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            zIndex: 10,
+            background: 'transparent',
+          }}
+          onContextMenu={(e) => e.preventDefault()}
+        />
+      </div>
+    </div>
+  );
+}
+
 export default function Notes() {
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -707,6 +898,8 @@ export default function Notes() {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
+  const [topicPdfs, setTopicPdfs] = useState({});
+  const [activePdfModal, setActivePdfModal] = useState(null);
 
   useEffect(() => {
     async function loadUserAndPlan() {
@@ -747,6 +940,85 @@ export default function Notes() {
     }
     loadUserAndPlan();
   }, []);
+
+  // Fetch all PDFs from Supabase Storage for the active subject
+  useEffect(() => {
+    let isMounted = true;
+    const folder = SUBJECT_STORAGE_FOLDER[selectedSubjectId] || 'Mathematics';
+
+    async function loadSubjectPdfs() {
+      try {
+        const { data, error } = await supabase.storage
+          .from('note-pdfs')
+          .list(folder, { limit: 100 });
+
+        if (isMounted && data && !error) {
+          const map = {};
+          data.forEach((file) => {
+            const { data: urlData } = supabase.storage
+              .from('note-pdfs')
+              .getPublicUrl(`${folder}/${file.name}`);
+            map[file.name] = urlData?.publicUrl;
+            const nameWithoutExt = file.name.replace(/\.pdf$/i, '');
+            map[nameWithoutExt] = urlData?.publicUrl;
+          });
+          setTopicPdfs(map);
+        }
+      } catch (err) {
+        console.warn('Failed to load subject PDFs from Supabase storage:', err);
+      }
+    }
+
+    loadSubjectPdfs();
+    return () => {
+      isMounted = false;
+    };
+  }, [selectedSubjectId]);
+
+  // When a topic is expanded (and user is Pro), check specific topic PDF
+  useEffect(() => {
+    if (!expandedTopicId) return;
+    const isUserPro = profile?.plan === 'pro' || profile?.plan === 'pro_max';
+    if (!isUserPro) return;
+
+    const currentSub = SYLLABUS.find((s) => s.id === selectedSubjectId) || SYLLABUS[0];
+    const topic = currentSub.topics.find((t) => t.id === expandedTopicId);
+    if (!topic) return;
+
+    const topicTitle = topic.title;
+    if (topicPdfs[topicTitle] !== undefined || topicPdfs[`${topicTitle}.pdf`] !== undefined) {
+      return;
+    }
+
+    const folder = SUBJECT_STORAGE_FOLDER[selectedSubjectId] || 'Mathematics';
+    supabase.storage
+      .from('note-pdfs')
+      .list(folder, { search: `${topicTitle}.pdf` })
+      .then(({ data, error }) => {
+        if (!error && data) {
+          const match = data.find(
+            (f) => f.name === `${topicTitle}.pdf` || f.name.toLowerCase() === `${topicTitle.toLowerCase()}.pdf`
+          );
+          if (match) {
+            const { data: urlData } = supabase.storage
+              .from('note-pdfs')
+              .getPublicUrl(`${folder}/${match.name}`);
+            setTopicPdfs((prev) => ({
+              ...prev,
+              [topicTitle]: urlData?.publicUrl,
+              [`${topicTitle}.pdf`]: urlData?.publicUrl,
+            }));
+          } else {
+            setTopicPdfs((prev) => ({
+              ...prev,
+              [topicTitle]: null,
+              [`${topicTitle}.pdf`]: null,
+            }));
+          }
+        }
+      })
+      .catch(() => {});
+  }, [expandedTopicId, profile, selectedSubjectId, topicPdfs]);
 
   const isPro = profile?.plan === 'pro' || profile?.plan === 'pro_max';
 
@@ -1307,70 +1579,146 @@ export default function Notes() {
                         ))}
                       </div>
 
-                      {/* Chapter PDF Coming Soon Placeholder */}
-                      <div
-                        style={{
-                          background: '#FFFFFF',
-                          border: '1px dashed #CBD5E1',
-                          borderRadius: 10,
-                          padding: '16px 18px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          flexWrap: 'wrap',
-                          gap: 14,
-                        }}
-                      >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                          {/* File / Doc Icon */}
-                          <div
-                            style={{
-                              width: 38,
-                              height: 38,
-                              borderRadius: 8,
-                              background: '#F1F5F9',
-                              border: '1px solid #E2E8F0',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              color: '#475569',
-                              flexShrink: 0,
-                            }}
-                          >
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#475569" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                              <polyline points="14 2 14 8 20 8" />
-                              <line x1="16" y1="13" x2="8" y2="13" />
-                              <line x1="16" y1="17" x2="8" y2="17" />
-                              <polyline points="10 9 9 9 8 9" />
-                            </svg>
-                          </div>
-                          <div>
-                            <div style={{ fontSize: 14, fontWeight: 650, color: '#0F172A' }}>
-                              Chapter PDF coming soon
-                            </div>
-                            <div style={{ fontSize: 12, color: '#64748B' }}>
-                              Curated formula cheat-sheets, solved past-year questions, and quick revision cards.
-                            </div>
-                          </div>
-                        </div>
-
-                        <span
+                      {/* Chapter PDF Section */}
+                      {isPro && (topicPdfs[topic.title] || topicPdfs[`${topic.title}.pdf`]) ? (
+                        <div
                           style={{
-                            fontSize: 11,
-                            fontWeight: 700,
-                            letterSpacing: '0.04em',
-                            color: '#475569',
-                            background: '#F1F5F9',
-                            border: '1px solid #E2E8F0',
-                            borderRadius: 6,
-                            padding: '4px 10px',
-                            textTransform: 'uppercase',
+                            background: '#FFFFFF',
+                            border: '1px solid #0F172A',
+                            borderRadius: 10,
+                            padding: '16px 18px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            flexWrap: 'wrap',
+                            gap: 14,
+                            boxShadow: '0 2px 8px rgba(15, 23, 42, 0.05)',
                           }}
                         >
-                          Under Preparation
-                        </span>
-                      </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                            <div
+                              style={{
+                                width: 38,
+                                height: 38,
+                                borderRadius: 8,
+                                background: '#0F172A',
+                                border: '1px solid #0F172A',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: '#FFFFFF',
+                                flexShrink: 0,
+                              }}
+                            >
+                              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                                <polyline points="14 2 14 8 20 8" />
+                                <line x1="16" y1="13" x2="8" y2="13" />
+                                <line x1="16" y1="17" x2="8" y2="17" />
+                              </svg>
+                            </div>
+                            <div>
+                              <div style={{ fontSize: 14, fontWeight: 700, color: '#0F172A' }}>
+                                Chapter Notes PDF Available
+                              </div>
+                              <div style={{ fontSize: 12, color: '#475569', marginTop: 2 }}>
+                                Verified theory summary &amp; formula cheat-sheet for {topic.title}
+                              </div>
+                            </div>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setActivePdfModal({
+                                url: topicPdfs[topic.title] || topicPdfs[`${topic.title}.pdf`],
+                                title: topic.title,
+                              })
+                            }
+                            style={{
+                              background: '#0F172A',
+                              color: '#FFFFFF',
+                              border: 'none',
+                              borderRadius: 8,
+                              padding: '8px 18px',
+                              fontSize: 13,
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                              letterSpacing: '0.02em',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: 6,
+                            }}
+                          >
+                            <span>View Notes PDF</span>
+                            <span>→</span>
+                          </button>
+                        </div>
+                      ) : (
+                        <div
+                          style={{
+                            background: '#FFFFFF',
+                            border: '1px dashed #CBD5E1',
+                            borderRadius: 10,
+                            padding: '16px 18px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            flexWrap: 'wrap',
+                            gap: 14,
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                            {/* File / Doc Icon */}
+                            <div
+                              style={{
+                                width: 38,
+                                height: 38,
+                                borderRadius: 8,
+                                background: '#F1F5F9',
+                                border: '1px solid #E2E8F0',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: '#475569',
+                                flexShrink: 0,
+                              }}
+                            >
+                              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#475569" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                                <polyline points="14 2 14 8 20 8" />
+                                <line x1="16" y1="13" x2="8" y2="13" />
+                                <line x1="16" y1="17" x2="8" y2="17" />
+                                <polyline points="10 9 9 9 8 9" />
+                              </svg>
+                            </div>
+                            <div>
+                              <div style={{ fontSize: 14, fontWeight: 650, color: '#0F172A' }}>
+                                Chapter PDF coming soon
+                              </div>
+                              <div style={{ fontSize: 12, color: '#64748B' }}>
+                                Curated formula cheat-sheets, solved past-year questions, and quick revision cards.
+                              </div>
+                            </div>
+                          </div>
+
+                          <span
+                            style={{
+                              fontSize: 11,
+                              fontWeight: 700,
+                              letterSpacing: '0.04em',
+                              color: '#475569',
+                              background: '#F1F5F9',
+                              border: '1px solid #E2E8F0',
+                              borderRadius: 6,
+                              padding: '4px 10px',
+                              textTransform: 'uppercase',
+                            }}
+                          >
+                            Under Preparation
+                          </span>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -1520,6 +1868,14 @@ export default function Notes() {
         userId={user?.id}
         title="Unlock All IMUCET Notes"
         subtitle="Get instant access to all 58+ chapter notes, formula sheets, full CBT mock tests and mock interviews."
+      />
+
+      {/* Protected PDF Viewer Modal */}
+      <ProtectedPdfModal
+        isOpen={Boolean(activePdfModal)}
+        onClose={() => setActivePdfModal(null)}
+        pdfUrl={activePdfModal?.url}
+        title={activePdfModal?.title}
       />
     </div>
   );

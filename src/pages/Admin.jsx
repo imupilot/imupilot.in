@@ -132,7 +132,122 @@ function Dashboard({ questions, flashcards, users }) {
   );
 }
 
-const EMPTY_Q = { subject: "", chapter: "", topic_tag: "", difficulty: "medium", question_text: "", option_a: "", option_b: "", option_c: "", option_d: "", correct_option: "A", concept: "", solution_steps: "", exam_tip: "", year: "" };
+function QuestionImageUpload({ imageUrl, onUploadSuccess, onRemove, subject, setNumber, questionId }) {
+  const [uploading, setUploading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+
+  async function handleFile(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setErrorMsg("");
+    setUploading(true);
+
+    try {
+      const ext = (file.name.split(".").pop() || "png").toLowerCase();
+      const cleanSub = (subject || "General").trim().replace(/[^a-zA-Z0-9_-]/g, "_");
+      const setNum = setNumber || 1;
+      const idOrTime = questionId || Date.now();
+      const path = `${cleanSub}/${setNum}_${idOrTime}.${ext}`;
+
+      const { data, error } = await supabase.storage
+        .from("question-images")
+        .upload(path, file, {
+          cacheControl: "3600",
+          upsert: true,
+        });
+
+      if (error) {
+        console.warn("Storage upload notice:", error.message);
+        setErrorMsg(error.message || "Upload failed. Please ensure 'question-images' public bucket exists.");
+      } else {
+        const { data: urlData } = supabase.storage
+          .from("question-images")
+          .getPublicUrl(path);
+
+        if (urlData?.publicUrl) {
+          onUploadSuccess(urlData.publicUrl);
+        }
+      }
+    } catch (err) {
+      console.error("Storage upload exception:", err);
+      setErrorMsg(err.message || "Failed to upload image");
+    } finally {
+      setUploading(false);
+      e.target.value = "";
+    }
+  }
+
+  return (
+    <div style={{ marginBottom: 14 }}>
+      <label style={S.label}>Question Image (optional)</label>
+      
+      {!imageUrl ? (
+        <div>
+          <input
+            type="file"
+            accept="image/*"
+            disabled={uploading}
+            onChange={handleFile}
+            style={{
+              width: "100%",
+              padding: "7px 10px",
+              fontSize: 12,
+              border: "1px solid #CBD5E1",
+              borderRadius: 8,
+              background: "#FFFFFF",
+              color: "#0F172A",
+              boxSizing: "border-box",
+            }}
+          />
+          {uploading && (
+            <div style={{ fontSize: 12, color: "#475569", marginTop: 4, fontWeight: 500 }}>
+              Uploading...
+            </div>
+          )}
+        </div>
+      ) : (
+        <div style={{ marginTop: 6, display: "flex", flexDirection: "column", gap: 8, alignItems: "flex-start" }}>
+          <img
+            src={imageUrl}
+            alt="Question diagram preview"
+            style={{
+              maxHeight: 120,
+              maxWidth: "100%",
+              objectFit: "contain",
+              borderRadius: 6,
+              border: "1px solid #E2E8F0",
+              background: "#F8FAFC",
+              padding: 4,
+            }}
+          />
+          <button
+            type="button"
+            onClick={onRemove}
+            style={{
+              ...S.btn(),
+              ...S.btnSm,
+              background: "#F1F5F9",
+              border: "1px solid #CBD5E1",
+              color: "#0F172A",
+              fontWeight: 600,
+            }}
+          >
+            Remove
+          </button>
+        </div>
+      )}
+
+      {errorMsg && (
+        <div style={{ fontSize: 12, color: "#0F172A", marginTop: 6, fontWeight: 600, background: "#F1F5F9", padding: "6px 10px", borderRadius: 6, border: "1px solid #CBD5E1" }}>
+          ⚠ {errorMsg}
+        </div>
+      )}
+    </div>
+  );
+}
+
+const EMPTY_Q = { subject: "", chapter: "", topic_tag: "", difficulty: "medium", question_text: "", image_url: null, option_a: "", option_b: "", option_c: "", option_d: "", correct_option: "A", concept: "", solution_steps: "", exam_tip: "", year: "" };
 
 function EditDrawer({ question, onClose, onSave }) {
   const [form, setForm] = useState({ ...EMPTY_Q, ...question });
@@ -182,6 +297,14 @@ function EditDrawer({ question, onClose, onSave }) {
           </div>
           <label style={S.label}>Question text (use $...$ for LaTeX)</label>
           <textarea style={{ ...S.input, height: 80 }} {...f("question_text")} />
+          <QuestionImageUpload
+            imageUrl={form.image_url}
+            onUploadSuccess={(url) => setForm((prev) => ({ ...prev, image_url: url }))}
+            onRemove={() => setForm((prev) => ({ ...prev, image_url: null }))}
+            subject={form.subject}
+            setNumber={form.chapter || 1}
+            questionId={question?.id}
+          />
           <div style={S.formRow}>
             <div><label style={S.label}>Option A</label><input style={S.input} {...f("option_a")} /></div>
             <div><label style={S.label}>Option B</label><input style={S.input} {...f("option_b")} /></div>
@@ -375,6 +498,13 @@ function Questions({ toast }) {
           </div>
           <label style={S.label}>Question text (use $...$ for LaTeX math)</label>
           <textarea style={{ ...S.input, height: 72 }} placeholder="Find the value of $x^2 + y^2$ when..." value={form.question_text} onChange={(e) => setForm({ ...form, question_text: e.target.value })} />
+          <QuestionImageUpload
+            imageUrl={form.image_url}
+            onUploadSuccess={(url) => setForm((prev) => ({ ...prev, image_url: url }))}
+            onRemove={() => setForm((prev) => ({ ...prev, image_url: null }))}
+            subject={form.subject}
+            setNumber={form.chapter || 1}
+          />
           <div style={S.formRow}>
             <div><label style={S.label}>Option A</label><input style={S.input} value={form.option_a} onChange={(e) => setForm({ ...form, option_a: e.target.value })} /></div>
             <div><label style={S.label}>Option B</label><input style={S.input} value={form.option_b} onChange={(e) => setForm({ ...form, option_b: e.target.value })} /></div>
@@ -430,6 +560,7 @@ const EMPTY_MOCK_Q = {
   set_number: 1,
   subject: "",
   question_text: "",
+  image_url: null,
   option_a: "",
   option_b: "",
   option_c: "",
@@ -540,6 +671,14 @@ function MockEditDrawer({ question, onClose, onSave, sets = [] }) {
           </div>
           <label style={S.label}>Question text (use $...$ for LaTeX)</label>
           <textarea style={{ ...S.input, height: 80 }} {...f("question_text")} />
+          <QuestionImageUpload
+            imageUrl={form.image_url}
+            onUploadSuccess={(url) => setForm((prev) => ({ ...prev, image_url: url }))}
+            onRemove={() => setForm((prev) => ({ ...prev, image_url: null }))}
+            subject={form.subject}
+            setNumber={form.set_number}
+            questionId={question?.id}
+          />
           <div style={S.formRow}>
             <div><label style={S.label}>Option A</label><input style={S.input} {...f("option_a")} /></div>
             <div><label style={S.label}>Option B</label><input style={S.input} {...f("option_b")} /></div>
@@ -965,6 +1104,11 @@ function MockQuestions({ toast, role }) {
                       <td style={S.td}><span style={S.badge("blue")}>Set {q.set_number}</span></td>
                       <td style={S.td}><b>{q.subject}</b></td>
                       <td style={{ ...S.td, maxWidth: 380, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={q.question_text}>
+                        {q.image_url && (
+                          <span style={{ marginRight: 6, fontSize: 11, background: "#F1F5F9", border: "1px solid #CBD5E1", padding: "1px 6px", borderRadius: 4, color: "#0F172A", fontWeight: 600 }}>
+                            Diagram
+                          </span>
+                        )}
                         {q.question_text}
                       </td>
                       <td style={S.td}>
@@ -1054,6 +1198,13 @@ function MockQuestions({ toast, role }) {
 
             <label style={S.label}>Question text *</label>
             <textarea style={{ ...S.input, height: 80 }} placeholder="Type question..." {...f("question_text")} />
+            <QuestionImageUpload
+              imageUrl={form.image_url}
+              onUploadSuccess={(url) => setForm((prev) => ({ ...prev, image_url: url }))}
+              onRemove={() => setForm((prev) => ({ ...prev, image_url: null }))}
+              subject={form.subject}
+              setNumber={form.set_number}
+            />
 
             <div style={S.formRow}>
               <div><label style={S.label}>Option A</label><input style={S.input} placeholder="Option A text" {...f("option_a")} /></div>
@@ -2418,6 +2569,450 @@ function Analytics() {
   );
 }
 
+// ─── Notes PDFs Section ──────────────────────────────────────────────────────
+
+const NOTE_TOPICS = {
+  Mathematics: [
+    "Quadratic Equations",
+    "Sets, Relations & Functions",
+    "Trigonometry & Inverse Trigonometric Functions",
+    "Complex Numbers",
+    "Permutation & Combination",
+    "Binomial Theorem",
+    "Matrices & Determinants",
+    "Straight Lines & Circles",
+    "Conic Sections",
+    "Limits & Derivatives",
+    "Integration",
+    "Differential Equations",
+    "Sequence & Series",
+    "Vector Algebra",
+    "3D Geometry",
+    "Statistics & Probability",
+  ],
+  Physics: [
+    "Units & Measurements",
+    "Kinematics",
+    "Laws of Motion",
+    "Work, Energy & Power",
+    "Rotational Motion",
+    "Gravitation",
+    "Properties of Matter",
+    "Thermodynamics",
+    "Kinetic Theory of Gases",
+    "Electrostatics",
+    "Current Electricity",
+    "Magnetism & Magnetic Effects of Current",
+    "Electromagnetic Induction & Alternating Current",
+    "Optics",
+    "Modern Physics",
+  ],
+  Chemistry: [
+    "Basic Concepts of Chemistry",
+    "Atomic Structure",
+    "Periodic Table & Periodic Properties",
+    "Chemical Bonding & Molecular Structure",
+    "States of Matter (Gaseous & Liquid)",
+    "Chemical Thermodynamics",
+    "Equilibrium & Redox Reactions",
+    "Electrochemistry",
+    "Chemical Kinetics",
+    "Organic Chemistry — Fundamentals & Hydrocarbons",
+    "Coordination Compounds",
+    "Biomolecules & Polymers",
+  ],
+  Aptitude: [
+    "Number System & Simplification",
+    "Arithmetic (Percentages, Ratio & Proportion)",
+    "Time & Work",
+    "Speed, Distance & Time",
+    "Interest (Simple & Compound)",
+    "Averages & Ages",
+    "Logical Reasoning",
+    "Series & Patterns",
+    "Height & Distance",
+    "Calendar & Clocks",
+  ],
+  English: [
+    "Grammar Basics",
+    "Vocabulary & Idioms",
+    "Sentence Correction & Spotting Errors",
+    "Voice & Speech",
+    "Reading Comprehension",
+  ],
+};
+
+const NOTE_SUBJECTS = ["Mathematics", "Physics", "Chemistry", "Aptitude", "English"];
+
+function NotesPDFs({ toast }) {
+  const [selectedSubject, setSelectedSubject] = useState("Mathematics");
+  const [storageFiles, setStorageFiles] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [uploadingTopic, setUploadingTopic] = useState(null);
+  const [deletingTopic, setDeletingTopic] = useState(null);
+  const [copiedTopic, setCopiedTopic] = useState(null);
+
+  const loadFiles = useCallback(async (sub) => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.storage
+        .from("note-pdfs")
+        .list(sub, {
+          limit: 100,
+          offset: 0,
+          sortBy: { column: "name", order: "asc" },
+        });
+
+      if (error) {
+        console.warn("Storage list notice:", error.message);
+        setStorageFiles({});
+      } else if (data) {
+        const map = {};
+        data.forEach((item) => {
+          const { data: urlData } = supabase.storage
+            .from("note-pdfs")
+            .getPublicUrl(`${sub}/${item.name}`);
+          map[item.name] = {
+            ...item,
+            publicUrl: urlData?.publicUrl,
+          };
+        });
+        setStorageFiles(map);
+      }
+    } catch (e) {
+      console.error("Failed to list PDFs:", e);
+      setStorageFiles({});
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadFiles(selectedSubject);
+  }, [selectedSubject, loadFiles]);
+
+  async function handleUpload(topicName, file) {
+    if (!file) return;
+    if (!file.name.toLowerCase().endsWith(".pdf") && file.type !== "application/pdf") {
+      toast("Please select a valid PDF file");
+      return;
+    }
+
+    setUploadingTopic(topicName);
+    const path = `${selectedSubject}/${topicName}.pdf`;
+
+    try {
+      const { error } = await supabase.storage
+        .from("note-pdfs")
+        .upload(path, file, {
+          cacheControl: "3600",
+          upsert: true,
+        });
+
+      if (error) {
+        console.error("Upload error:", error);
+        toast("Upload error: " + error.message);
+      } else {
+        toast(`Uploaded PDF for ${topicName}!`);
+        await loadFiles(selectedSubject);
+      }
+    } catch (err) {
+      console.error("Upload exception:", err);
+      toast("Upload failed: " + (err.message || "Unknown error"));
+    } finally {
+      setUploadingTopic(null);
+    }
+  }
+
+  async function handleDelete(topicName) {
+    const ok = window.confirm(`Delete PDF for "${topicName}" from Supabase Storage?`);
+    if (!ok) return;
+
+    setDeletingTopic(topicName);
+    const path = `${selectedSubject}/${topicName}.pdf`;
+
+    try {
+      const { error } = await supabase.storage
+        .from("note-pdfs")
+        .remove([path]);
+
+      if (error) {
+        console.error("Delete error:", error);
+        toast("Delete error: " + error.message);
+      } else {
+        toast(`Deleted PDF for ${topicName}`);
+        await loadFiles(selectedSubject);
+      }
+    } catch (err) {
+      console.error("Delete exception:", err);
+      toast("Delete failed");
+    } finally {
+      setDeletingTopic(null);
+    }
+  }
+
+  const topics = NOTE_TOPICS[selectedSubject] || [];
+  const uploadedCount = topics.filter((t) => storageFiles[`${t}.pdf`]?.publicUrl).length;
+
+  return (
+    <div>
+      <div style={{ fontSize: 20, fontWeight: 700, color: "#0F172A", marginBottom: 4 }}>
+        Notes PDFs
+      </div>
+      <div style={{ fontSize: 13, color: "#475569", marginBottom: 20 }}>
+        Upload and manage chapter theory &amp; summary PDFs in Supabase Storage bucket <code>note-pdfs</code>
+      </div>
+
+      {/* Subject Selector Tabs */}
+      <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
+        {NOTE_SUBJECTS.map((sub) => {
+          const isActive = selectedSubject === sub;
+          return (
+            <button
+              key={sub}
+              type="button"
+              onClick={() => setSelectedSubject(sub)}
+              style={{
+                padding: "8px 18px",
+                fontSize: 13,
+                fontWeight: 600,
+                borderRadius: 8,
+                cursor: "pointer",
+                transition: "all 0.15s ease",
+                border: isActive ? "1px solid #0F172A" : "1px solid #CBD5E1",
+                background: isActive ? "#0F172A" : "#FFFFFF",
+                color: isActive ? "#FFFFFF" : "#0F172A",
+              }}
+            >
+              {sub}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Stats and Info Bar */}
+      <div
+        style={{
+          background: "#FFFFFF",
+          border: "1px solid #E2E8F0",
+          borderRadius: 10,
+          padding: "14px 18px",
+          marginBottom: 18,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          flexWrap: "wrap",
+          gap: 12,
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 16, fontSize: 13, color: "#475569" }}>
+          <div>
+            Subject: <strong style={{ color: "#0F172A" }}>{selectedSubject}</strong>
+          </div>
+          <div style={{ width: 1, height: 16, background: "#CBD5E1" }} />
+          <div>
+            Total Topics: <strong style={{ color: "#0F172A" }}>{topics.length}</strong>
+          </div>
+          <div style={{ width: 1, height: 16, background: "#CBD5E1" }} />
+          <div>
+            PDFs Uploaded: <strong style={{ color: "#0F172A" }}>{uploadedCount} / {topics.length}</strong>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => loadFiles(selectedSubject)}
+          disabled={loading}
+          style={{
+            padding: "6px 14px",
+            fontSize: 12,
+            fontWeight: 600,
+            borderRadius: 6,
+            border: "1px solid #CBD5E1",
+            background: "#F1F5F9",
+            color: "#0F172A",
+            cursor: "pointer",
+          }}
+        >
+          {loading ? "Refreshing..." : "↺ Refresh"}
+        </button>
+      </div>
+
+      {/* Topics Table */}
+      <div style={{ background: "#FFFFFF", border: "1px solid #E2E8F0", borderRadius: 12, overflow: "hidden" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13, textAlign: "left" }}>
+          <thead>
+            <tr style={{ background: "#F8FAFC", borderBottom: "1px solid #E2E8F0" }}>
+              <th style={{ padding: "12px 16px", fontSize: 11, fontWeight: 700, color: "#475569", textTransform: "uppercase", width: 50 }}>#</th>
+              <th style={{ padding: "12px 16px", fontSize: 11, fontWeight: 700, color: "#475569", textTransform: "uppercase" }}>Topic Name</th>
+              <th style={{ padding: "12px 16px", fontSize: 11, fontWeight: 700, color: "#475569", textTransform: "uppercase" }}>Supabase Public URL</th>
+              <th style={{ padding: "12px 16px", fontSize: 11, fontWeight: 700, color: "#475569", textTransform: "uppercase", textAlign: "right", width: 250 }}>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {topics.map((topicName, idx) => {
+              const fileName = `${topicName}.pdf`;
+              const fileData = storageFiles[fileName];
+              const hasPdf = Boolean(fileData?.publicUrl);
+              const isUploading = uploadingTopic === topicName;
+              const isDeleting = deletingTopic === topicName;
+
+              return (
+                <tr key={topicName} style={{ borderBottom: "1px solid #F1F5F9" }}>
+                  <td style={{ padding: "12px 16px", color: "#64748B", fontWeight: 600 }}>
+                    {idx + 1}
+                  </td>
+                  <td style={{ padding: "12px 16px" }}>
+                    <div style={{ fontWeight: 600, color: "#0F172A" }}>{topicName}</div>
+                    <div style={{ fontSize: 11, color: "#94A3B8", marginTop: 2 }}>
+                      Path: <code>{selectedSubject}/{topicName}.pdf</code>
+                    </div>
+                  </td>
+                  <td style={{ padding: "12px 16px" }}>
+                    {hasPdf ? (
+                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <span
+                          style={{
+                            fontSize: 11,
+                            padding: "3px 8px",
+                            borderRadius: 6,
+                            background: "#F1F5F9",
+                            color: "#0F172A",
+                            fontWeight: 600,
+                            border: "1px solid #CBD5E1",
+                          }}
+                        >
+                          Active
+                        </span>
+                        <input
+                          type="text"
+                          readOnly
+                          value={fileData.publicUrl}
+                          style={{
+                            fontSize: 11,
+                            padding: "4px 8px",
+                            borderRadius: 6,
+                            border: "1px solid #E2E8F0",
+                            background: "#F8FAFC",
+                            color: "#475569",
+                            width: 200,
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                          }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            navigator.clipboard.writeText(fileData.publicUrl);
+                            setCopiedTopic(topicName);
+                            setTimeout(() => setCopiedTopic(null), 1800);
+                          }}
+                          style={{
+                            padding: "3px 8px",
+                            fontSize: 11,
+                            fontWeight: 600,
+                            borderRadius: 6,
+                            border: "1px solid #CBD5E1",
+                            background: "#FFFFFF",
+                            color: "#0F172A",
+                            cursor: "pointer",
+                          }}
+                        >
+                          {copiedTopic === topicName ? "Copied!" : "Copy"}
+                        </button>
+                      </div>
+                    ) : (
+                      <span style={{ fontSize: 12, color: "#94A3B8" }}>No PDF uploaded</span>
+                    )}
+                  </td>
+                  <td style={{ padding: "12px 16px", textAlign: "right" }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 6 }}>
+                      {/* Hidden file input */}
+                      <input
+                        id={`notes-pdf-file-${idx}`}
+                        type="file"
+                        accept=".pdf,application/pdf"
+                        style={{ display: "none" }}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleUpload(topicName, file);
+                          e.target.value = "";
+                        }}
+                      />
+
+                      {/* Upload / Replace button */}
+                      <button
+                        type="button"
+                        disabled={isUploading || isDeleting}
+                        onClick={() => document.getElementById(`notes-pdf-file-${idx}`).click()}
+                        style={{
+                          padding: "5px 12px",
+                          fontSize: 12,
+                          fontWeight: 600,
+                          borderRadius: 6,
+                          cursor: "pointer",
+                          border: hasPdf ? "1px solid #CBD5E1" : "1px solid #0F172A",
+                          background: hasPdf ? "#FFFFFF" : "#0F172A",
+                          color: hasPdf ? "#0F172A" : "#FFFFFF",
+                        }}
+                      >
+                        {isUploading ? "Uploading..." : hasPdf ? "Replace" : "Upload PDF"}
+                      </button>
+
+                      {hasPdf && (
+                        <>
+                          <a
+                            href={fileData.publicUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                              padding: "5px 10px",
+                              fontSize: 12,
+                              fontWeight: 600,
+                              borderRadius: 6,
+                              border: "1px solid #CBD5E1",
+                              background: "#FFFFFF",
+                              color: "#0F172A",
+                              textDecoration: "none",
+                              display: "inline-flex",
+                              alignItems: "center",
+                            }}
+                          >
+                            View
+                          </a>
+
+                          <button
+                            type="button"
+                            disabled={isDeleting || isUploading}
+                            onClick={() => handleDelete(topicName)}
+                            style={{
+                              padding: "5px 10px",
+                              fontSize: 12,
+                              fontWeight: 600,
+                              borderRadius: 6,
+                              border: "1px solid #CBD5E1",
+                              background: "#F1F5F9",
+                              color: "#0F172A",
+                              cursor: "pointer",
+                            }}
+                          >
+                            {isDeleting ? "..." : "Delete"}
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
 // ─── main component ───────────────────────────────────────────────────────────
 
 export default function Admin() {
@@ -2500,6 +3095,7 @@ export default function Admin() {
   const nav = [
     { id: "dashboard", label: "Dashboard", adminOnly: true },
     { id: "interviews", label: "Interviews", adminOnly: true },
+    { id: "notepdfs", label: "Notes PDFs", adminOnly: true },
     { id: "questions", label: "Questions" },
     { id: "mockquestions", label: "Mock Questions" },
     { id: "flashcards", label: "Flashcards" },
@@ -2511,6 +3107,7 @@ export default function Admin() {
   const pages = {
     dashboard: <Dashboard questions={questions} flashcards={flashcards} users={users} />,
     interviews: <Interviews toast={toast} />,
+    notepdfs: <NotesPDFs toast={toast} />,
     questions: <Questions toast={toast} />,
     mockquestions: <MockQuestions toast={toast} role={role} />,
     flashcards: <Flashcards toast={toast} />,

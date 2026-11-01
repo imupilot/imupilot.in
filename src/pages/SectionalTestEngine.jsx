@@ -1,13 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
-import { createClient } from '@supabase/supabase-js';
 import MathText from '../components/MathText';
 import { LogoIcon } from '../components/Icons';
 import IMUpilotSidebar from '../components/IMUpilotSidebar';
-
-const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL,
-  import.meta.env.VITE_SUPABASE_ANON_KEY
-);
+import { supabase } from '../supabaseClient';
 
 function createChapters(subjectId, classLevel, names, orderOffset = 0) {
   return names.map((name, index) => ({
@@ -760,6 +755,15 @@ function TestEngine({ subject, chapter, topic, onBack }) {
                     <div style={{ fontSize: 13, color: 'var(--text-primary)', marginBottom: 12, lineHeight: 1.6 }}>
                       <MathText text={q.question_text} />
                     </div>
+
+                    {q.image_url && (
+                      <img
+                        src={q.image_url}
+                        alt="Question diagram"
+                        style={{ maxWidth: '100%', maxHeight: '300px', borderRadius: '8px', margin: '12px 0', border: '1px solid #E2E8F0' }}
+                      />
+                    )}
+
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                       {['option_a','option_b','option_c','option_d'].map((opt, oi) => {
                         const letter = opt.replace('option_', '');
@@ -884,6 +888,14 @@ function TestEngine({ subject, chapter, topic, onBack }) {
               <div style={{ fontSize: 15, color: 'var(--text-primary)', lineHeight: 1.8, marginBottom: 24, fontWeight: 500 }}>
                 <MathText text={currentQ?.question_text || ''} />
               </div>
+
+              {currentQ?.image_url && (
+                <img
+                  src={currentQ.image_url}
+                  alt="Question diagram"
+                  style={{ maxWidth: '100%', maxHeight: '300px', borderRadius: '8px', margin: '12px 0', border: '1px solid #E2E8F0' }}
+                />
+              )}
 
               {/* Options */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>

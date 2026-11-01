@@ -5,7 +5,6 @@ import Dashboard from './pages/Dashboard';
 import MockTestEngine from './pages/MockTestEngine';
 import SectionalTestEngine from './pages/SectionalTestEngine';
 import TestResult from './pages/TestResult';
-import Learn from './pages/Learn';
 import SmartRevision from './pages/SmartRevision';
 import Admin from './pages/Admin';
 import Auth from './pages/Auth';
@@ -51,7 +50,6 @@ export default function App() {
           <Route path="/terms-and-conditions" element={<Terms />} />
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/analytics" element={<ProtectedRoute><AnalyticsPage /></ProtectedRoute>} />
-          <Route path="/learn" element={<ProtectedRoute><Learn /></ProtectedRoute>} />
           <Route path="/notes" element={<ProtectedRoute><Notes /></ProtectedRoute>} />
           <Route path="/revise" element={<ProtectedRoute><SmartRevision /></ProtectedRoute>} />
           <Route path="/planner" element={<ProtectedRoute><StudyPlanner /></ProtectedRoute>} />
